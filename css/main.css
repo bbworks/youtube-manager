@@ -1,0 +1,418 @@
+:root {
+  /* standard colors */
+  --dark-color: rgb(30,30,30);
+  --dark-accent-color: rgb(50,50,50);
+  --light-color: rgb(245,245,245);
+  --light-accent-color: rgb(235,235,235);
+  --muted-color: gray;
+
+  /* default colors */
+  --primary-color: #586A6A;
+  --secondary-color: #B9A394;
+  --text-primary-color: var(--dark-color);
+  --text-secondary-color: var(--light-color);
+  --background-primary-color: var(--light-color);
+  --background-primary-accent-color: var(--light-accent-color);
+  --background-secondary-color: var(--dark-color);
+  --background-secondary-accent-color: var(--dark-accent-color);
+
+  /* theme colors */
+  --theme-dark-primary-color: var(--secondary-color);
+  --theme-dark-secondary-color: var(--primary-color);
+  --theme-dark-text-primary-color: var(--light-color);
+  --theme-dark-text-secondary-color: var(--dark-color);
+  --theme-dark-background-primary-color: var(--dark-color);
+  --theme-dark-background-primary-accent-color: var(--dark-accent-color);
+  --theme-dark-background-secondary-color: var(--light-color);
+  --theme-dark-background-secondary-accent-color: var(--light-accent-color);
+
+  --theme-royalty-primary-color: #45062E;
+  --theme-royalty-secondary-color: #EBD2BE;
+  --theme-royalty-text-primary-color: var(--dark-color);
+  --theme-royalty-text-secondary-color: var(--light-color);
+  --theme-royalty-background-primary-color: #fff6fc;
+  --theme-royalty-background-primary-accent-color: var(--light-accent-color);
+  --theme-royalty-background-secondary-color: var(--dark-color);
+  --theme-royalty-background-secondary-accent-color: var(--dark-accent-color);
+
+  --theme-nautical-primary-color: #043150;
+  --theme-nautical-secondary-color: #f54f4f;
+  --theme-nautical-text-primary-color: var(--dark-color);
+  --theme-nautical-text-secondary-color: var(--light-color);
+  --theme-nautical-background-primary-color: #f7fffe;
+  --theme-nautical-background-primary-accent-color: var(--light-accent-color);
+  --theme-nautical-background-secondary-color: var(--dark-color);
+  --theme-nautical-background-secondary-accent-color: var(--dark-accent-color);
+}
+
+/*************
+** UNIVERSAL
+*************/
+
+body {
+  background-color: rgb(245,245,245);
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+a {
+  text-decoration: none;
+  color: unset;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+button:focus {
+  outline: none;
+}
+
+
+/********
+** PAGE
+********/
+
+.button {
+  color: white;
+  background-color: royalblue;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+}
+
+.button[disabled="true"] {
+  color: unset;
+  background-color: rgb(200,200,200);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  background-color: rgb(225,225,225);
+  padding-bottom: 1rem;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.title-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: rgb(100,100,100);
+}
+
+.youtube-icon {
+  display: block;
+  font-size: 2rem;
+  /*color: #c4302b;*/
+}
+
+.title {
+  font-size: 1.5rem;
+  font-family: monospace;
+  font-weight: lighter;
+}
+
+.playlists-container {
+  background-color: rgb(128,128,128);
+  padding: 1rem 2rem;
+}
+
+.playlist-container {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+
+.playlist-section {
+  display: flex;
+  align-items: center;
+}
+
+.playlist-section-main {
+  cursor: pointer;
+}
+
+.playlist-image {
+  display: block;
+  max-width: 40%;
+}
+
+.playlist-info {
+  margin-left: 0.5rem;
+}
+
+.playlist-title {
+  font-weight: lighter;
+}
+
+.playlist-description {
+  font-size: 0.75rem;
+}
+
+.playlist-items-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background-color: rgb(235,235,235);
+  padding: 0.5rem 0.5rem;
+  margin: 0.5rem 1rem;
+  max-height: 30rem;
+  overflow-y: auto;
+}
+
+.playlist-items-container.shrink {
+  height: 0;
+  padding: 0;
+}
+
+.playlist-item-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  background-color: white;
+  min-height: 6rem;
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  overflow-y: hidden;
+}
+
+.playlist-item-image {
+  display: block;
+  max-width: 40%;
+}
+
+.playlist-item-info {
+  margin-left: 0.5rem;
+}
+
+.playlist-item-title {
+  font-weight: lighter;
+}
+
+.playlist-item-description {
+  font-size: 0.75rem;
+}
+
+.playlist-item-checkbox {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.fetch-button {
+  color: rgb(225,225,225);
+  background-color: rgb(50,50,50);
+  padding: 0.5rem 1rem;
+  border: rgb(225,225,225);
+  border-radius: 0.25rem;
+  margin-top: auto;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+  background-color: rgb(50,50,50);
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.loading-spinner {
+  display: none;
+  color: rgb(225,225,225);
+  animation: circle-spin 1s linear infinite normal both;
+}
+
+@keyframes circle-spin {
+  0% {transform: rotate(0);}
+  100% {transform: rotate(360deg);}
+}
+
+.playlist-item-selection-list-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: rgb(235,235,235);
+  padding: 1rem;
+  min-width: 60%;
+  max-width: 20rem;
+  height: 100%;
+  overflow: auto;
+  transition: transform 0.25s;
+  transform: translateX(-100%);
+}
+
+.playlist-item-selection-list-container.display {
+  transform: translateY(0);
+}
+
+.playlist-item-selection-list-playlist-items-container {
+
+}
+
+.playlist-item-selection-container {
+  display: flex;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: white;
+  text-align: right;
+  transition: transform 0.25s;
+  transform: translateY(100%);
+}
+
+.playlist-item-selection-container.display {
+  transform: translateY(0);
+}
+
+.playlist-item-container[data-checked="true"] {
+  background-color: rgb(230 240 255);
+}
+
+.playlist-item-selection-list-button {
+  color: rgb(50,50,50);
+  font-size: 1.2rem;
+}
+
+.playlist-item-selection-count-span {
+  margin-left: auto;
+}
+
+.playlist-item-selection-count {
+  font-weight: bold;
+}
+
+.playlist-item-selection-move-button {
+  margin-left: 2rem;
+}
+
+.playlist-item-selection-move-dialog-background {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255,255,255, 0.7);
+}
+
+.playlist-item-selection-move-dialog-background.display {
+  display: block;
+}
+
+.playlist-item-selection-move-dialog {
+  position: fixed;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 80%;
+  background-color: white;
+  border: 2px solid gray;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  padding-bottom: 0.5rem;
+  overflow-y: auto;
+}
+
+.playlist-item-selection-move-dialog-playlist-list {
+  width: 100%;
+  height: 70%;
+  background-color: rgb(235,235,235);
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  overflow-y: auto;
+}
+
+.playlist-item-selection-move-dialog .playlist-container.unselected {
+    opacity: 0.5;
+}
+
+.playlist-item-selection-move-dialog-move-item-container {
+  padding: 0.25rem;
+  padding-left: 0;
+  overflow-y: auto;
+}
+
+.playlist-item-selection-move-dialog-move-item {
+  background-color: white;
+  white-space: nowrap;
+  padding: 0.25rem;
+  border-bottom: 1px solid black;
+  overflow: hidden;
+}
+
+.playlist-item-selection-move-dialog-move-item:not(:last-child) {
+  border-bottom: 1px solid lightgray;
+}
+
+.playlist-item-selection-move-dialog-move-item-thumbnail {
+  width: 1.5rem;
+  margin: 0 0.5rem;
+}
+
+.playlist-item-selection-move-dialog-move-item-title {
+  display: inline;
+}
+
+.playlist-item-selection-move-dialog-move-item-status-inprogress {
+  color: rgb(0,128,255);
+  animation: inprogress-spin 1s linear infinite normal both;
+}
+
+@keyframes inprogress-spin {
+  0% {transform: rotate(0);}
+  100% {transform: rotate(360deg);}
+}
+
+.playlist-item-selection-move-dialog-move-item-status-success {
+  color: rgb(0,175,0);
+}
+
+.playlist-item-selection-move-dialog-move-item-status-failure {
+  color: red;
+}
+
+.playlist-item-selection-move-dialog-copy-button-container {
+
+}
+
+.playlist-item-selection-move-dialog-copy-button[disabled="true"] {
+    color: rgb(200,200,200);
+    background-color: rgb(98 116 171);
+}
+
+.playlist-item-selection-move-dialog-back-button {
+  color: black;
+  background-color: rgb(200,200,200);
+}
+
+.authorize-button {
+  display: none;
+}

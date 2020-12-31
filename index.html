@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="This is my app.">
+    <!-- <link type="image/ico" rel="icon" href="/assets/logo.png"> -->
+    <title>App | Home</title>
+
+    <!-- FONT AWESOME -->
+    <!-- NOTE: Import Font Awesome first, so we can override the formating of their icons -->
+    <link type="text/css" rel="stylesheet" href="css/fontawesome-free-5.14.0-web/css/all.min.css">
+
+    <!-- STYLESHEETS -->
+    <link type="text/css" rel="stylesheet" href="css/main.css">
+    <!-- <link type="text/css" rel="stylesheet" href="css/header.css">
+    <link type="text/css" rel="stylesheet" href="css/footer.css">
+    <link type="text/css" rel="stylesheet" href="css/index.css"> -->
+  </head>
+  <body>
+    <div class="content">
+      <div class="main">
+        <div class="title-container">
+          <i class="fab fa-youtube youtube-icon"></i>
+          <h3 class="title">YouTube Manager</h3>
+        </div>
+        <select id="username-select" class="username-select"></select>
+        <div id="playlists-container" class="playlists-container"></div>
+      </div>
+      <footer class="footer">
+        <i id="loading-spinner" class="fas fa-spinner loading-spinner"></i>
+      </footer>
+      <div id="playlist-item-selection-list-container" class="playlist-item-selection-list-container">
+        <div id="playlist-item-selection-list-playlist-items-container" class="playlist-item-selection-list-playlist-items-container"></div>
+      </div>
+      <div id="playlist-item-selection-container" class="playlist-item-selection-container">
+        <button id="playlist-item-selection-list-button" class="fas fa-list playlist-item-selection-list-button" type="button"></button>
+        <span class="playlist-item-selection-count-span"><span id="playlist-item-selection-count" class="playlist-item-selection-count">0</span> selected</span>
+        <button type="button" id="playlist-item-selection-move-button" class="button playlist-item-selection-move-button">Move</button>
+      </div>
+      <div id="playlist-item-selection-move-dialog-background" class="playlist-item-selection-move-dialog-background">
+        <div id="playlist-item-selection-move-dialog" class="playlist-item-selection-move-dialog">
+          <div id="playlist-item-selection-move-dialog-playlist-list" class="playlist-item-selection-move-dialog-playlist-list"></div>
+          <div id="playlist-item-selection-move-dialog-info-container" class="playlist-item-selection-move-dialog-info-container">
+            <span id="playlist-item-selection-move-dialog-count-span" class="playlist-item-selection-move-dialog-count-span">
+              <span id="playlist-item-selection-move-dialog-count" class="playlist-item-selection-move-dialog-count">0</span>
+           selected
+              </span>
+            <i class="fas fa-arrow-right playlist-item-selection-move-dialog-count-arrow"></i>
+            <span id="playlist-item-selection-move-dialog-selected-playlist" class="playlist-item-selection-move-dialog-selected-playlist"></span>
+          </div>
+          <div id="playlist-item-selection-move-dialog-move-item-container" class="playlist-item-selection-move-dialog-move-item-container"></div>
+          <div class="playlist-item-selection-move-dialog-copy-button-container">
+            <button id="playlist-item-selection-move-dialog-copy-button" class="button playlist-item-selection-move-dialog-copy-button" type="button" disabled="true">Copy</button>
+            <button id="playlist-item-selection-move-dialog-back-button" class="button playlist-item-selection-move-dialog-back-button" type="button">Back</button>
+          </div>
+        </div>
+      </div>
+
+<!--       <div id="playlist-item-selection-move-dialog-background" class="playlist-item-selection-move-dialog-background">
+        <div id="playlist-item-selection-move-dialog" class="playlist-item-selection-move-dialog">
+        </div>
+      </div> -->
+
+      <div>
+        <button type="button" id="authorize-button" class="button authorize-button">Log In</button>
+        <button type="button" id="signout-button" class="button signout-button" disabled="true">Log Out</button>
+      </div>
+    </div>
+  </body>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="js/main.js"></script>
+</html>

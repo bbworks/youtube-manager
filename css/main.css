@@ -364,7 +364,6 @@ button:focus {
   background-color: white;
   white-space: nowrap;
   padding: 0.25rem;
-  border-bottom: 1px solid black;
   overflow: hidden;
 }
 

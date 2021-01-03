@@ -8,7 +8,7 @@ const app = {
 };
 
 const USERS = {
-  "BradleyBieraMusic": null, //"UC6gN3HTPu-Lo9O3XwdYEtsg",
+  "BradleyBieraMusic": "UC6gN3HTPu-Lo9O3XwdYEtsg",
   "Bradley Biera": "UCk9xSbcaUpwWvJTRbqrPQXQ",
 };
 
@@ -42,12 +42,9 @@ const loadUsernamesSelect = function() {
   };
 
   for(const user in USERS) {
-    fetchData(
-      buildFetchUrl("channels", (USERS[user] ? {"id":USERS[user]} : {"forUsername":user})),
-      "GET",
-      null,
-      null,
-      channelData => {
+    const userId = USERS[user];
+
+    getYouTubeChannels(userId, channelData => {
         const newChannels = channelData.map(item => {
           return {
             id: item.id,
@@ -67,7 +64,7 @@ const loadUsernamesSelect = function() {
           callback();
         }
       }
-    );//end fetchData()
+    ); //end getYouTubeChannels()
   } //end for(user in USERS)
 };
 
@@ -249,13 +246,7 @@ const renderPlaylists = function(channelId) {
     });
   }; //end callback()
 
-  fetchData(
-    buildFetchUrl("playlists", {"channelId":channelId}),
-    "GET",
-    null,
-    null,
-    callback
-  ); //end fetchData(playlistData)
+  getYouTubePlaylists(channelId, callback);
 };
 
 const renderPlaylistItems = function(playlistId, playlistContainer) {
@@ -309,13 +300,7 @@ const renderPlaylistItems = function(playlistId, playlistContainer) {
     playlistItemsContainer.classList.remove("shrink");
   }; //end callback()
 
-  fetchData(
-    buildFetchUrl("playlistItems", {"playlistId":playlistId}),
-    "GET",
-    null,
-    null,
-    callback
-  );
+  getYouTubePlaylistItems(playlistId, callback);
 };
 
 const renderPlaylistItemSelectionMoveDialogPlaylistList = function() {
@@ -428,8 +413,6 @@ addClickEventListener(document.getElementById("playlist-item-selection-move-dial
       playlistItemSelectionMoveDialogMoveItemContainer.innerHTML += buildMoveDialogMoveItem(insertedVideo.videoId, insertedVideo.thumbnail.url, insertedVideo.title, "inprogress");
       playlistItemSelectionMoveDialogMoveItemContainer
     }
-
-    //console.log(buildFetchUrl("playlistItems"), bodyParams);
 
     //window.setTimeout(()=>{updateMoveDialogMoveItem(insertedVideo.videoId, "failure");}, 2000);
 

@@ -1,20 +1,5 @@
-const recurseData = function(func, options, pageToken, callback) {
-  //If we're reading a page, add it to our params
-  if (pageToken && !options.hasOwnProperty("pageToken")) {
-    options.pageToken = pageToken;
-  }
-
-  func(options, pageData => {
-    if (pageData.nextPageToken) {
-      recurseData(func, options, newPageData => {callback(new Array(...pageData.items, ...newPageData));});
-    }
-    else {
-      callback(new Array(...pageData.items));
-    }
-  });
-};
-
-const callYouTubeDataApiFunction = function(resourceType, method, params, callback) {
+const callYouTubeDataApiFunction = function(resourceType, method, params, pageToken, callback) {
+  //Build the request options
   const options = {
     ...{
       "part": [
@@ -28,45 +13,34 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, callba
     options.maxResults = 50;
   }
 
+  if (pageToken) {
+    options.pageToken = pageToken;
+  }
+
+  //Call the Google YouTube Data API, recursively
   gapi.client.youtube[resourceType][method](options)
-    .then(response=>{callback(response.result)})
+    .then(response => {
+      if (response.result.nextPageToken) {
+        callYouTubeDataApiFunction(resourceType, method, options, response.result.nextPageToken, newPageData => {callback(new Array(...response.result.items, ...newPageData));});
+      }
+      else {
+        callback(new Array(...response.result.items));
+      }
+    })
     .catch(err=>{console.error(err);});
 };
 
-const getYouTubeChannels = function(params, callback) {
-  callYouTubeDataApiFunction("channels", "list", params, callback);
+//Declare our specific functions
+const getYouTubeChannels = function(channelId, callback) {
+  callYouTubeDataApiFunction("channels", "list", {"id": channelId}, null, callback);
 };
 
 
-const getYouTubePlaylists = function(params) {
-  const options = {
-    ...{
-      "part": [
-        "snippet"
-      ],
-      "maxResults": 50,
-    },
-    ...params
-  };
-
-  gapi.client.youtube.playlists.list(options)
-    .then(response=>{console.log(response.result);})
-    .catch(err=>{console.error(err);});
+const getYouTubePlaylists = function(channelId, callback) {
+  callYouTubeDataApiFunction("playlists", "list", {"channelId": channelId}, null, callback);
 };
 
 
-const getYouTubePlaylistItems = function(params) {
-  const options = {
-    ...{
-      "part": [
-        "snippet"
-      ],
-      "maxResults": 50,
-    },
-    ...params
-  };
-
-  gapi.client.youtube.playlistItems.list(options)
-    .then(response=>{console.log(response.result);})
-    .catch(err=>{console.error(err);});
+const getYouTubePlaylistItems = function(playlistId, callback) {
+  callYouTubeDataApiFunction("playlistItems", "list", {"playlistId": playlistId}, null, callback);
 };

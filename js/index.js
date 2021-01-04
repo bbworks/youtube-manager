@@ -416,22 +416,19 @@ addClickEventListener(document.getElementById("playlist-item-selection-move-dial
 
     //window.setTimeout(()=>{updateMoveDialogMoveItem(insertedVideo.videoId, "failure");}, 2000);
 
-    gapi.client.youtube.playlistItems.insert({
-      part: [
-        "snippet",
-      ],
-      resource: bodyParams,
-    })
-    .then(response=>{
-      updateMoveDialogMoveItem(insertedVideo.videoId, "success");
-      console.log(response.result);
-      callback(true);
-    })
-    .catch(err=>{
-      updateMoveDialogMoveItem(insertedVideo.videoId, "failure");
-      console.error(err);
-      callback(false);
-    });
+    addYouTubePlaylistItem(
+      bodyParams,
+      result => {
+        updateMoveDialogMoveItem(insertedVideo.videoId, "success");
+        console.log(result);
+        callback(result);
+      },
+      err => {
+        updateMoveDialogMoveItem(insertedVideo.videoId, "failure");
+        console.error(err);
+        callback(false);
+      },
+    );
   };
 
   const insertVideos = function(videosArray, index, retry, callback) {
@@ -450,7 +447,7 @@ addClickEventListener(document.getElementById("playlist-item-selection-move-dial
         }
       }
       else {
-        if (retry > retryMax) {
+        if (retry >= retryMax) {
           console.error("Failed to insert video. Continuing...");
           insertVideos(videosArray, index+1, null, callback);
         }

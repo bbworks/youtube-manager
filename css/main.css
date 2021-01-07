@@ -380,7 +380,7 @@ button:focus {
   display: inline;
 }
 
-.playlist-item-selection-move-dialog-move-item-status-inprogress {
+.playlist-item-selection-move-dialog-move-item[data-copy-status="inprogress"] .playlist-item-selection-move-dialog-move-item-copy-status {
   color: rgb(0,128,255);
   animation: inprogress-spin 1s linear infinite normal both;
 }
@@ -390,11 +390,11 @@ button:focus {
   100% {transform: rotate(360deg);}
 }
 
-.playlist-item-selection-move-dialog-move-item-status-success {
+.playlist-item-selection-move-dialog-move-item[data-copy-status="success"] .playlist-item-selection-move-dialog-move-item-copy-status {
   color: rgb(0,175,0);
 }
 
-.playlist-item-selection-move-dialog-move-item-status-failure {
+.playlist-item-selection-move-dialog-move-item[data-copy-status="failure"] .playlist-item-selection-move-dialog-move-item-copy-status {
   color: red;
 }
 
@@ -408,6 +408,50 @@ button:focus {
 }
 
 .playlist-item-selection-move-dialog-back-button {
+  color: black;
+  background-color: rgb(200,200,200);
+}
+
+.playlist-item-selection-delete-dialog-background {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255,255,255, 0.7);
+}
+
+.playlist-item-selection-delete-dialog-background.display {
+  display: block;
+}
+
+.playlist-item-selection-delete-dialog {
+  position: fixed;
+  top: 35%;
+  left: 35%;
+  width: 30%;
+  height: 25%;
+  background-color: white;
+  border: 2px solid gray;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  padding-bottom: 0.5rem;
+}
+
+.playlist-item-selection-move-dialog-move-item-delete-status {
+  display: none;
+  padding: 0.1rem;
+  margin-left: 2rem;
+  color: rgb(175,175,175);
+  background-color: lightgray;
+  border: 2px solid rgb(175,175,175);
+  border-radius: 2px;
+  font-weight: bold;
+  font-variant: all-small-caps;
+}
+
+.playlist-item-selection-delete-dialog-cancel-button {
   color: black;
   background-color: rgb(200,200,200);
 }

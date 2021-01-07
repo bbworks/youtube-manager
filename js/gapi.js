@@ -18,6 +18,7 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
   //Call the Google YouTube Data API, recursively
   gapi.client.youtube[resourceType][method](options)
     .then(response => {
+      console.log(response);
       if (method === "list") {
         if (response.result.nextPageToken) {
           callYouTubeDataApiFunction(resourceType, method, options, response.result.nextPageToken, newPageData => {callback(new Array(...response.result.items, ...newPageData));});
@@ -26,8 +27,11 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
           callback(new Array(...response.result.items));
         }
       }
-      else {
+      else if (method === "update" || method === "insert"){
         callback(response.result);
+      }
+      else /*(method === "delete")*/ {
+        callback(response);
       }
     })
     .catch(err=>{
@@ -51,4 +55,8 @@ const getYouTubePlaylistItems = function(playlistId, callback, errCallback) {
 
 const addYouTubePlaylistItem = function(resourceObject, callback, errCallback) {
   callYouTubeDataApiFunction("playlistItems", "insert", {"resource": resourceObject}, null, callback, errCallback);
+};
+
+const deleteYouTubePlaylistItem = function(playlistItemId, callback, errCallback) {
+  callYouTubeDataApiFunction("playlistItems", "delete", {"id": playlistItemId}, null, callback, errCallback);
 };

@@ -175,10 +175,11 @@ const buildMoveDialogMoveItem = function(videoId, thumbnail, title, status) {
       break;
   }
 
-  return `<div class="playlist-item-selection-move-dialog-move-item" data-video-id="${videoId}"> `+
-      `<i class="playlist-item-selection-move-dialog-move-item-status-${statusClass} ${statusIcon}"></i> `+
+  return `<div class="playlist-item-selection-move-dialog-move-item" data-video-id="${videoId}" data-copy-status="${statusClass}"> `+
+      `<i class="playlist-item-selection-move-dialog-move-item-copy-status ${statusIcon}"></i> `+
       `<img class="playlist-item-selection-move-dialog-move-item-thumbnail" src="${thumbnail}"> `+
       `<div class="playlist-item-selection-move-dialog-move-item-title">${title}</div> `+
+      `<span class="playlist-item-selection-move-dialog-move-item-delete-status"></span>`+
     `</div>`;
 };
 
@@ -188,19 +189,16 @@ const updateMoveDialogMoveItem = function(videoId, status) {
 
   switch (status) {
     case "inprogress":
-      statusClass = "inprogress";
       statusIcon = "fas fa-spinner";
       break;
     case "success":
-      statusClass = "success";
       statusIcon = "fas fa-check-circle";
       break;
     case "failure":
-      statusClass = "failure";
       statusIcon = "fas fa-times-circle";
       break;
     default:
-      statusClass = "unknown";
+      status = "unknown";
       statusIcon = "fas fa-question-circle";
       break;
   }
@@ -209,8 +207,41 @@ const updateMoveDialogMoveItem = function(videoId, status) {
   const moveItems = new Array(...playlistItemSelectionMoveDialogMoveItemContainer.children).filter(child=>child.getAttribute("data-video-id") === videoId);
 
   moveItems.forEach(moveItem=>{
-    const moveItemStatusIcon = new Array(...moveItem.children).filter(child=>child.className.match("playlist-item-selection-move-dialog-move-item-status"))[0];
-    moveItemStatusIcon.className = moveItemStatusIcon.className.replace(/playlist-item-selection-move-dialog-move-item-status-\w+/, `playlist-item-selection-move-dialog-move-item-status-${statusClass}`).replace(/fa\w fa-[\w-]+/, statusIcon);
+    moveItem.setAttribute("data-copy-status", status);
+
+    const moveItemStatusIcon = new Array(...moveItem.children).filter(child=>child.classList.contains("playlist-item-selection-move-dialog-move-item-copy-status"))[0];
+    moveItemStatusIcon.className = moveItemStatusIcon.className.replace(/fa\w fa-[\w-]+/, statusIcon);
+  });
+};
+
+const updateDeleteDialogMoveItem = function(videoId, status) {
+  let statusText;
+
+  switch (status) {
+    case "inprogress":
+      statusText = "Removing...";
+      break;
+    case "success":
+      statusText = "Removed.";
+      break;
+    case "failure":
+      statusText = "Failed.";
+      break;
+    default:
+      status = "unknown";
+      statusText = "unknown";
+      break;
+  }
+
+  const playlistItemSelectionMoveDialogMoveItemContainer = document.getElementById("playlist-item-selection-move-dialog-move-item-container");
+  const moveItems = new Array(...playlistItemSelectionMoveDialogMoveItemContainer.children).filter(child=>child.getAttribute("data-video-id") === videoId);
+
+  moveItems.forEach(moveItem=>{
+    moveItem.setAttribute("data-remove-status", status);
+
+    const moveItemDeleteStatus = new Array(...moveItem.children).filter(child=>child.className.match("playlist-item-selection-move-dialog-move-item-delete-status"))[0];
+    if (moveItemDeleteStatus.style.display !== "inline-block") moveItemDeleteStatus.style.display = "inline-block";
+    moveItemDeleteStatus.innerText = statusText;
   });
 };
 
@@ -392,55 +423,52 @@ addClickEventListener(document.getElementById("playlist-item-selection-move-dial
 
 addClickEventListener(document.getElementById("playlist-item-selection-move-dialog-copy-button"), event=>{
   const insertPlaylistId = app.selectedPlaylist.id;
-  const insertPlaylistVideosArray = Object.keys(app.selectedPlaylistItems).map(playlistItemId=>{return app.selectedPlaylistItems[playlistItemId];});
+  const insertPlaylistItemsArray = Object.keys(app.selectedPlaylistItems).map(playlistItemId=>{return app.selectedPlaylistItems[playlistItemId];});
   const playlistItemSelectionMoveDialogMoveItemContainer = document.getElementById("playlist-item-selection-move-dialog-move-item-container");
 
-  //console.log(insertPlaylistId, insertPlaylistVideosArray);
+  //console.log(insertPlaylistId, insertPlaylistItemsArray);
 
-  const insertVideo = function(insertedVideo, callback) {
+  const insertVideo = function(insertedPlaylistItem, callback) {
     const bodyParams = {
       snippet: {
         playlistId: insertPlaylistId,
         resourceId: {
           kind: "youtube#video",
-          videoId: insertedVideo.videoId,
+          videoId: insertedPlaylistItem.videoId,
         }
       }
     };
 
     //Create a child element, if necessary
-    if (new Array(...playlistItemSelectionMoveDialogMoveItemContainer.children).filter(child=>child.getAttribute("data-video-id") === insertedVideo.videoId)) {
-      playlistItemSelectionMoveDialogMoveItemContainer.innerHTML += buildMoveDialogMoveItem(insertedVideo.videoId, insertedVideo.thumbnail.url, insertedVideo.title, "inprogress");
+    if (new Array(...playlistItemSelectionMoveDialogMoveItemContainer.children).filter(child=>child.getAttribute("data-video-id") === insertedPlaylistItem.videoId)) {
+      playlistItemSelectionMoveDialogMoveItemContainer.innerHTML += buildMoveDialogMoveItem(insertedPlaylistItem.videoId, insertedPlaylistItem.thumbnail.url, insertedPlaylistItem.title, "inprogress");
       playlistItemSelectionMoveDialogMoveItemContainer
     }
 
-    //window.setTimeout(()=>{updateMoveDialogMoveItem(insertedVideo.videoId, "failure");}, 2000);
-
+    //Add the playlist item
     addYouTubePlaylistItem(
       bodyParams,
       result => {
-        updateMoveDialogMoveItem(insertedVideo.videoId, "success");
-        console.log(result);
+        updateMoveDialogMoveItem(insertedPlaylistItem.videoId, "success");
         callback(result);
       },
       err => {
-        updateMoveDialogMoveItem(insertedVideo.videoId, "failure");
-        console.error(err);
+        updateMoveDialogMoveItem(insertedPlaylistItem.videoId, "failure");
         callback(false);
       },
     );
   };
 
-  const insertVideos = function(videosArray, index, retry, callback) {
+  const insertVideos = function(playlistItemsArray, index, retry, callback) {
     retry = retry || 0;
     const retryMax = 1;
-    const video = videosArray[index];
-    const nextVideo = (index < videosArray.length-1 ? true : false);
+    const playlistItem = playlistItemsArray[index];
+    const hasNextVideo = (index < playlistItemsArray.length-1 ? true : false);
 
-    insertVideo(video, success=>{
+    insertVideo(playlistItem, success=>{
       if (success) {
-        if (nextVideo) {
-          insertVideos(videosArray, index+1, null, callback);
+        if (hasNextVideo) {
+          insertVideos(playlistItemsArray, index+1, null, callback);
         }
         else {
           callback();
@@ -449,20 +477,107 @@ addClickEventListener(document.getElementById("playlist-item-selection-move-dial
       else {
         if (retry >= retryMax) {
           console.error("Failed to insert video. Continuing...");
-          insertVideos(videosArray, index+1, null, callback);
+          insertVideos(playlistItemsArray, index+1, null, callback);
         }
         else {
           const timeout = 5000;
-          console.error(`Waiting ${timeout/1000} seconds for retry.`);
-          window.setTimeout(()=>{insertVideos(videosArray, index, retry+1, callback)}, timeout);
+          console.error(`Could not insert video. Waiting ${timeout/1000} seconds for ${retryMax - retry} more retr${(retryMax - retry === 1 ? "y" : "ies")}...`);
+          window.setTimeout(()=>{insertVideos(playlistItemsArray, index, retry+1, callback)}, timeout);
         }
       }
     });
   };
 
   const callback = function() {
-    console.info("Videos inserted.")
+    togglePlaylistItemSelectionDeleteDialogBackground(true);
   };
 
-  insertVideos(insertPlaylistVideosArray, 0, null, callback);
+  insertVideos(insertPlaylistItemsArray, 0, null, callback);
+});
+
+const togglePlaylistItemSelectionDeleteDialogBackground = function(displayBoolean) {
+  const playlistItemSelectionDeleteDialogBackground = document.getElementById("playlist-item-selection-delete-dialog-background");
+
+  if (displayBoolean === null || displayBoolean === undefined) {
+    displayBoolean = !playlistItemSelectionDeleteDialogBackground.classList.contains(
+  "display")
+  }
+
+  if (displayBoolean) {
+    playlistItemSelectionDeleteDialogBackground.classList.add("display");
+  }
+  else {
+    playlistItemSelectionDeleteDialogBackground.classList.remove("display");
+  }
+};
+
+addClickEventListener(document.getElementById("playlist-item-selection-delete-dialog-cancel-button"), event=>{togglePlaylistItemSelectionDeleteDialogBackground(false);});
+
+addClickEventListener(document.getElementById("playlist-item-selection-delete-dialog-remove-button"), event=>{
+  const insertedPlaylistItemsArray = Object.keys(app.selectedPlaylistItems).map(playlistItemId=>{return app.selectedPlaylistItems[playlistItemId];});
+  const playlistItemSelectionMoveDialogMoveItemContainer = document.getElementById("playlist-item-selection-move-dialog-move-item-container");
+
+  const removePlaylistItemFromSourcePlaylist = function(insertedPlaylistItem, callback) {
+    deleteYouTubePlaylistItem(
+      insertedPlaylistItem.id,
+      response => {
+        updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, "success");
+        callback(response);
+      },
+      err => {
+        updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, "failure");
+        callback(false);
+      },
+    );
+  };
+
+  const removePlaylistItemFromSourcePlaylists = function(playlistItemsArray, index, retry, callback) {
+    retry = retry || 0;
+    const retryMax = 1;
+    const playlistItem = playlistItemsArray[index];
+    const hasNextVideo = (index < playlistItemsArray.length-1 ? true : false);
+
+    //First, assure we don't attempt to remove playlist items that failed to copy
+    const moveItem = new Array(...playlistItemSelectionMoveDialogMoveItemContainer.children).filter(child=>child.getAttribute("data-video-id") === playlistItem.videoId)[0];
+    if (moveItem.getAttribute("data-copy-status") !== "success") {
+      if (hasNextVideo) {
+        removePlaylistItemFromSourcePlaylists(playlistItemsArray, index+1, null, callback);
+      }
+      else {
+        callback();
+      }
+      return;
+    }
+
+    //Remove the playlist item
+    removePlaylistItemFromSourcePlaylist(playlistItem, success=>{
+      if (success) {
+        if (hasNextVideo) {
+          removePlaylistItemFromSourcePlaylists(playlistItemsArray, index+1, null, callback);
+        }
+        else {
+          callback();
+        }
+      }
+      else {
+        if (retry >= retryMax) {
+          console.error("Failed to remove video from source playlist. Continuing...");
+          removePlaylistItemFromSourcePlaylists(playlistItemsArray, index+1, null, callback);
+        }
+        else {
+          const timeout = 5000;
+          console.error(`Could not remove video from source playlist. Waiting ${timeout/1000} seconds for ${retryMax - retry} more retr${(retryMax - retry === 1 ? "y" : "ies")}...`);
+          window.setTimeout(()=>{removePlaylistItemFromSourcePlaylists(playlistItemsArray, index, retry+1, callback)}, timeout);
+        }
+      }
+    });
+  };
+
+  const callback = function() {
+    console.info("Source playlist items removed.")
+  };
+
+  togglePlaylistItemSelectionDeleteDialogBackground(false);
+
+  removePlaylistItemFromSourcePlaylists(insertedPlaylistItemsArray, 0, null, callback);
 });

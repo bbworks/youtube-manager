@@ -311,8 +311,10 @@ const renderPlaylistItems = function(playlistId, playlistContainer) {
 
     playlistItemsContainer.innerHTML = "";
     app.currentChannel.playlists[playlistId].items.forEach(playlistItem=>{
-      const playlistItemContainerHTML = buildResourceContainer("playlistItem", playlistItem.id, playlistItem.thumbnail.url, playlistItem.title, playlistItem.description);
-      playlistItemsContainer.innerHTML += playlistItemContainerHTML;
+      //Switch to appendChild from innerHTML append for better performance
+      const element = document.createElement("div");
+      playlistItemsContainer.appendChild(element);
+      element.outerHTML = buildResourceContainer("playlistItem", playlistItem.id, playlistItem.thumbnail.url, playlistItem.title, playlistItem.description);
     });
 
     new Array(...document.getElementsByClassName("playlist-item-container")).forEach(playlistItemContainer=>{
@@ -340,8 +342,9 @@ const renderPlaylistItemSelectionMoveDialogPlaylistList = function() {
   playlistItemSelectionMoveDialogPlaylistList.innerHTML = "";
     for(const playlistId in app.currentChannel.playlists) {
       const playlist = app.currentChannel.playlists[playlistId];
-      const playlistContainerHTML = buildResourceContainer("playlist", playlist.id, playlist.thumbnail.url, playlist.title, playlist.description);
-      playlistItemSelectionMoveDialogPlaylistList.innerHTML += playlistContainerHTML;
+      const element = document.createElement("div");
+      playlistItemSelectionMoveDialogPlaylistList.appendChild(element);
+      element.outerHTML = buildResourceContainer("playlist", playlist.id, playlist.thumbnail.url, playlist.title, playlist.description);
     };
 };
 

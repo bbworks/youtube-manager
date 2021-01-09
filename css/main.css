@@ -1,48 +1,9 @@
 :root {
   /* standard colors */
-  --dark-color: rgb(30,30,30);
-  --dark-accent-color: rgb(50,50,50);
-  --light-color: rgb(245,245,245);
-  --light-accent-color: rgb(235,235,235);
-  --muted-color: gray;
+  --youtube: #c4302b;
 
   /* default colors */
-  --primary-color: #586A6A;
-  --secondary-color: #B9A394;
-  --text-primary-color: var(--dark-color);
-  --text-secondary-color: var(--light-color);
-  --background-primary-color: var(--light-color);
-  --background-primary-accent-color: var(--light-accent-color);
-  --background-secondary-color: var(--dark-color);
-  --background-secondary-accent-color: var(--dark-accent-color);
-
-  /* theme colors */
-  --theme-dark-primary-color: var(--secondary-color);
-  --theme-dark-secondary-color: var(--primary-color);
-  --theme-dark-text-primary-color: var(--light-color);
-  --theme-dark-text-secondary-color: var(--dark-color);
-  --theme-dark-background-primary-color: var(--dark-color);
-  --theme-dark-background-primary-accent-color: var(--dark-accent-color);
-  --theme-dark-background-secondary-color: var(--light-color);
-  --theme-dark-background-secondary-accent-color: var(--light-accent-color);
-
-  --theme-royalty-primary-color: #45062E;
-  --theme-royalty-secondary-color: #EBD2BE;
-  --theme-royalty-text-primary-color: var(--dark-color);
-  --theme-royalty-text-secondary-color: var(--light-color);
-  --theme-royalty-background-primary-color: #fff6fc;
-  --theme-royalty-background-primary-accent-color: var(--light-accent-color);
-  --theme-royalty-background-secondary-color: var(--dark-color);
-  --theme-royalty-background-secondary-accent-color: var(--dark-accent-color);
-
-  --theme-nautical-primary-color: #043150;
-  --theme-nautical-secondary-color: #f54f4f;
-  --theme-nautical-text-primary-color: var(--dark-color);
-  --theme-nautical-text-secondary-color: var(--light-color);
-  --theme-nautical-background-primary-color: #f7fffe;
-  --theme-nautical-background-primary-accent-color: var(--light-accent-color);
-  --theme-nautical-background-secondary-color: var(--dark-color);
-  --theme-nautical-background-secondary-accent-color: var(--dark-accent-color);
+  --accent-color: var(--youtube);
 }
 
 /*************
@@ -71,6 +32,12 @@ button {
   cursor: pointer;
 }
 
+button[disabled] {
+  color: rgba(16,16,16, 0.3);
+  background-color: rgba(239,239,239, 0.3);
+  border: 1px solid rgba(118,118,118,0.3);
+}
+
 button:focus {
   outline: none;
 }
@@ -82,14 +49,44 @@ button:focus {
 
 .button {
   color: white;
-  background-color: royalblue;
+  background-color: var(--accent-color);
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
 }
 
-.button[disabled="true"] {
-  color: unset;
+.button-negative {
+  color: black;
   background-color: rgb(200,200,200);
+}
+
+.checkbox {
+  pointer-events: none; /*turn off pointer events so we don't check the box and the playlist item at the time and "double check"*/
+}
+
+.checkbox-input {
+  display: none;
+}
+
+.checkbox-icon-container {
+  background-color: white;
+  padding: 0.125rem;
+  border: 1px solid lightgray;
+  border-radius: 0.25rem;
+}
+
+.checkbox-icon {
+  font-size: 0.5rem;
+  visibility: hidden;
+}
+
+.checkbox-input:checked + .checkbox-icon-container {
+  color: white;
+  background-color: var(--accent-color);
+  border: none;
+}
+
+.checkbox-input:checked + .checkbox-icon-container .checkbox-icon {
+  visibility: visible;
 }
 
 .content {
@@ -97,7 +94,7 @@ button:focus {
   flex-direction: column;
   align-items: center;
   position: relative;
-  background-color: rgb(225,225,225);
+  background-color: white;
   padding-bottom: 1rem;
 }
 
@@ -106,7 +103,9 @@ button:focus {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
   min-height: 300px;
+  padding: 0 2rem;
 }
 
 .title-container {
@@ -114,14 +113,16 @@ button:focus {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
   height: 100%;
-  color: rgb(100,100,100);
+  color: var(--accent-color);
+  background-color: white;
+  padding: 2rem 0;
 }
 
 .youtube-icon {
   display: block;
   font-size: 2rem;
-  /*color: #c4302b;*/
 }
 
 .title {
@@ -130,9 +131,15 @@ button:focus {
   font-weight: lighter;
 }
 
+.username-select {
+  margin-bottom: 1rem;
+}
+
 .playlists-container {
-  background-color: rgb(128,128,128);
+  background-color: rgb(235,235,235);
+  width: 100%;
   padding: 1rem 2rem;
+  border-radius: 0.5rem;
 }
 
 .playlist-container {
@@ -143,6 +150,15 @@ button:focus {
   border-radius: 0.5rem;
   margin: 0.5rem 0;
   overflow: hidden;
+  transition: background-color 0.25s;
+}
+
+.playlist-container:hover {
+  background-color: rgb(245,245,245);
+}
+
+.playlist-container:hover .playlist-title {
+    color: var(--accent-color);
 }
 
 .playlist-section {
@@ -165,6 +181,18 @@ button:focus {
 
 .playlist-title {
   font-weight: lighter;
+  transition: color 0.25s;
+}
+
+.playlist-privacy-icon {
+  color: rgb(175,175,175);
+  font-size: 0.625rem;
+  margin-right: 0.25rem;
+}
+
+.playlist-video-count {
+  color: gray;
+  font-size: 0.75rem;
 }
 
 .playlist-description {
@@ -198,6 +226,15 @@ button:focus {
   border-radius: 0.5rem;
   cursor: pointer;
   overflow-y: hidden;
+  transition: color 0.25s, background-color 0.25s;
+}
+
+.playlist-item-container:hover {
+  background-color: rgb(245,245,245);
+}
+
+.playlist-item-container:hover .playlist-item-title {
+    color: var(--accent-color);
 }
 
 .playlist-item-image {
@@ -211,6 +248,13 @@ button:focus {
 
 .playlist-item-title {
   font-weight: lighter;
+  transition: color 0.25s;
+}
+
+.playlist-item-privacy-icon {
+  color: rgb(175,175,175);
+  font-size: 0.625rem;
+  margin-right: 0.25rem;
 }
 
 .playlist-item-description {
@@ -223,15 +267,6 @@ button:focus {
   right: 0;
 }
 
-.fetch-button {
-  color: rgb(225,225,225);
-  background-color: rgb(50,50,50);
-  padding: 0.5rem 1rem;
-  border: rgb(225,225,225);
-  border-radius: 0.25rem;
-  margin-top: auto;
-}
-
 .footer {
   display: flex;
   justify-content: center;
@@ -239,12 +274,6 @@ button:focus {
   background-color: rgb(50,50,50);
   width: 100%;
   margin-top: 1rem;
-}
-
-.loading-spinner {
-  display: none;
-  color: rgb(225,225,225);
-  animation: circle-spin 1s linear infinite normal both;
 }
 
 @keyframes circle-spin {
@@ -403,13 +432,11 @@ button:focus {
 }
 
 .playlist-item-selection-move-dialog-copy-button[disabled="true"] {
-    color: rgb(200,200,200);
-    background-color: rgb(98 116 171);
+
 }
 
 .playlist-item-selection-move-dialog-back-button {
-  color: black;
-  background-color: rgb(200,200,200);
+
 }
 
 .playlist-item-selection-delete-dialog-background {
@@ -452,8 +479,7 @@ button:focus {
 }
 
 .playlist-item-selection-delete-dialog-cancel-button {
-  color: black;
-  background-color: rgb(200,200,200);
+
 }
 
 .authorize-button {

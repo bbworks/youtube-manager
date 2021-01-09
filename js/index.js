@@ -41,31 +41,24 @@ const loadUsernamesSelect = function() {
     updateCurrentChannel(DEFAULT_USER);
   };
 
-  for(const user in USERS) {
-    const userId = USERS[user];
+  getYouTubeChannel(Object.values(USERS), channelsData => {
+    //Save our channels
+    channelsData.forEach(channelData => {
+      const channel = {
+        id: channelData.id,
+        title: channelData.snippet.title,
+        description: channelData.snippet.description,
+        kind: channelData.kind,
+        publishedAt: channelData.snippet.publishedAt,
+        thumbnail: channelData.snippet.thumbnails.default,
+      };
 
-    getYouTubeChannels(userId, channelData => {
-        const newChannels = channelData.map(item => {
-          return {
-            id: item.id,
-            title: item.snippet.title,
-            description: item.snippet.description,
-            kind: item.kind,
-            publishedAt: item.snippet.publishedAt,
-            thumbnail: item.snippet.thumbnails.default,
-          };
-        });
+      app.channels[channel.title] = channel;
+    });
 
-        newChannels.forEach(channel => {
-         app.channels[user] = channel;
-        });
-
-        if (++numOfResponses === Object.keys(USERS).length) {
-          callback();
-        }
-      }
-    ); //end getYouTubeChannels()
-  } //end for(user in USERS)
+    //End with our callback
+    callback();
+  }); //end getYouTubeChannel()
 };
 
 const displayPlaylistItemSelectionContainer = function() {
@@ -114,7 +107,7 @@ const renderPlaylistItemSelectionList = function() {
     ).includes(selectedPlaylistItemId)).map(element=>app.selectedPlaylistItems[element]);
 
   addedPlaylistItems.forEach(addedPlaylistItem =>
-    playlistItemSelectionListPlaylistItemsContainer.innerHTML += buildResourceContainer("playlistItem", addedPlaylistItem.id, addedPlaylistItem.thumbnail.url, addedPlaylistItem.title, addedPlaylistItem.description)
+    playlistItemSelectionListPlaylistItemsContainer.innerHTML += buildResourceContainer("playlistItem", addedPlaylistItem.id, addedPlaylistItem.thumbnail.url, addedPlaylistItem.title, addedPlaylistItem.description, addedPlaylistItem.privacyStatus, null)
   );
 
   //Remove unselected playlist items
@@ -127,28 +120,52 @@ const renderPlaylistItemSelectionList = function() {
   );
 };
 
-const buildResourceContainer = function(resource, id, image, title, description) {
+const buildResourceContainer = function(resource, id, image, title, description, privacyStatus, videoCount) {
+  let privacyStatusClass = null;
+  switch (privacyStatus) {
+    case "public":
+      privacyStatusClass = "fas fa-globe-americas";
+      break;
+    case "private":
+      privacyStatusClass = "fas fa-lock";
+      break;
+    default:
+      privacyStatusClass = "fas fa-question";
+      break;
+  }
+
   switch (resource) {
     case "playlist":
       return `<div class=\"playlist-container\" data-playlist-id=\"${id}\"> `+
           `<section class=\"playlist-section playlist-section-main\"> `+
-              `<img class=\"playlist-image\" src=\"${image}\"></img> `+
+            `<img class=\"playlist-image\" src=\"${image}\"></img> `+
             `<div class=\"playlist-info\"> `+
               `<h3 class=\"playlist-title\">${title}</h3> `+
-              `<span class=\"playlist-description\">${(description.length <= 50 ? description : description.substring(0,47)+"...")}</span> `+
+              `<i class="playlist-privacy-icon ${privacyStatusClass}"></i> `+
+              `<span class=\"playlist-video-count\">${videoCount} video${(videoCount > 1 ? "s" : "")}</span> `+
+              `<div class=\"playlist-description\"> `+
+                `${(description.length <= 50 ? description : description.substring(0,47)+"...")} `+
+              `</div> `+
+            `</div> `+
           `</section> `+
           `<div class=\"playlist-section playlist-items-container shrink\"> `+
           `</div> `+
         `</div>`;
     case "playlistItem":
       return `<div class=\"playlist-item-container\" data-playlist-item-id=\"${id}\" data-checked=\"false\">`+
-        `<img class=\"playlist-item-image\" src=\"${image}\"></img>`+
-        `<div class=\"playlist-item-info\">`+
-          `<h3 class=\"playlist-item-title\">${title}</h3>`+
-          `<span class=\"playlist-item-description\">${(description.length <= 50 ? description : description.substring(0,47)+"...")}</span>`+
-      `</div>`+
-      `<input type="checkbox" class="playlist-item-checkbox" />`+
-    `</div>`;
+          `<img class=\"playlist-item-image\" src=\"${image}\"></img>`+
+          `<div class=\"playlist-item-info\">`+
+            `<h3 class=\"playlist-item-title\">${title}</h3>`+
+            `<i class="playlist-item-privacy-icon ${privacyStatusClass}"></i> `+
+            `<span class=\"playlist-item-description\">${(description.length <= 50 ? description : description.substring(0,47)+"...")}</span>`+
+          `</div>`+
+          `<label class="checkbox playlist-item-checkbox"> `+
+            `<input type="checkbox" class="checkbox-input"> `+
+            `<div class="checkbox-icon-container"> `+
+              `<i class="fas fa-check checkbox-icon"></i> `+
+            `</div> `+
+          `</label> `+
+        `</div>`;
   };
 };
 
@@ -259,13 +276,15 @@ const renderPlaylists = function(channelId) {
         channelId: item.snippet.channelId,
         publishedAt: item.snippet.publishedAt,
         thumbnail: item.snippet.thumbnails.default,
+        privacyStatus: item.status.privacyStatus,
+        itemCount: item.contentDetails.itemCount,
       };
     });
 
     playlistsContainer.innerHTML = "";
     for(const playlistId in app.currentChannel.playlists) {
       const playlist = app.currentChannel.playlists[playlistId];
-      const playlistContainerHTML = buildResourceContainer("playlist", playlist.id, playlist.thumbnail.url, playlist.title, playlist.description);
+      const playlistContainerHTML = buildResourceContainer("playlist", playlist.id, playlist.thumbnail.url, playlist.title, playlist.description, playlist.privacyStatus, playlist.itemCount);
       playlistsContainer.innerHTML += playlistContainerHTML;
     };
 
@@ -306,6 +325,7 @@ const renderPlaylistItems = function(playlistId, playlistContainer) {
         publishedAt: item.snippet.publishedAt,
         thumbnail: (Object.keys(item.snippet.thumbnails).length ? item.snippet.thumbnails.default : {url: "https://i.ytimg.com/img/no_thumbnail.jpg" /*no thumbnail*/, width: 120, height: 90,}),
         videoId: item.snippet.resourceId.videoId,
+        privacyStatus: item.status.privacyStatus,
       };
     });
 
@@ -314,12 +334,13 @@ const renderPlaylistItems = function(playlistId, playlistContainer) {
       //Switch to appendChild from innerHTML append for better performance
       const element = document.createElement("div");
       playlistItemsContainer.appendChild(element);
-      element.outerHTML = buildResourceContainer("playlistItem", playlistItem.id, playlistItem.thumbnail.url, playlistItem.title, playlistItem.description);
+      element.outerHTML = buildResourceContainer("playlistItem", playlistItem.id, playlistItem.thumbnail.url, playlistItem.title, playlistItem.description, playlistItem.privacyStatus);
     });
 
     new Array(...document.getElementsByClassName("playlist-item-container")).forEach(playlistItemContainer=>{
       addClickEventListener(playlistItemContainer, event=>{
-        const checkbox = new Array(...playlistItemContainer.children).filter(element=>element.classList.contains("playlist-item-checkbox"))[0];
+        const checkbox = playlistItemContainer.querySelector(".checkbox-input");
+        console.log(checkbox);
         checkbox.checked = !checkbox.checked;
         playlistItemContainer.setAttribute("data-checked", checkbox.checked);
 
@@ -344,7 +365,7 @@ const renderPlaylistItemSelectionMoveDialogPlaylistList = function() {
       const playlist = app.currentChannel.playlists[playlistId];
       const element = document.createElement("div");
       playlistItemSelectionMoveDialogPlaylistList.appendChild(element);
-      element.outerHTML = buildResourceContainer("playlist", playlist.id, playlist.thumbnail.url, playlist.title, playlist.description);
+      element.outerHTML = buildResourceContainer("playlist", playlist.id, playlist.thumbnail.url, playlist.title, playlist.description, playlist.privacyStatus, playlist.itemCount);
     };
 };
 

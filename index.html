@@ -26,7 +26,13 @@
         <select id="username-select" class="username-select"></select>
         <div id="playlists-container" class="playlists-container"></div>
       </div>
-      <footer class="footer"></footer>
+      <footer class="footer">
+        <div class="authorization-button-container">
+          <button type="button" id="authorize-button" class="button authorize-button">Log In</button>
+          <button type="button" id="signout-button" class="button signout-button" disabled="true">Log Out</button>
+        </div>
+      </footer>
+
       <div id="playlist-item-selection-list-container" class="playlist-item-selection-list-container">
         <div id="playlist-item-selection-list-playlist-items-container" class="playlist-item-selection-list-playlist-items-container"></div>
       </div>
@@ -64,10 +70,7 @@
           </div>
         </div>
       </div>
-      <div>
-        <button type="button" id="authorize-button" class="button authorize-button">Log In</button>
-        <button type="button" id="signout-button" class="button signout-button" disabled="true">Log Out</button>
-      </div>
+
     </div>
   </body>
   <script src="https://apis.google.com/js/api.js"></script>

@@ -147,6 +147,7 @@ const buildResourceContainer = function(resource, id, image, title, description,
                 `${(description.length <= 50 ? description : description.substring(0,47)+"...")} `+
               `</div> `+
             `</div> `+
+            `<i class="playlist-loading-spinner fas fa-spinner"></i> `+
           `</section> `+
           `<div class=\"playlist-section playlist-items-container shrink\"> `+
           `</div> `+
@@ -302,7 +303,10 @@ const renderPlaylists = function(channelId) {
 const renderPlaylistItems = function(playlistId, playlistContainer) {
   const playlistItemsContainer = new Array(...playlistContainer.children).filter(element=>element.classList.contains("playlist-items-container"))[0];
 
-  if (app.currentChannel.playlists[playlistId].items && app.currentChannel.playlists[playlistId].items.length) {
+  //If we have populated the playlist items, shrink and expand
+  // the container, regardless of if there are no items
+  // (so we can still remove the padding from the empty container)
+  if (app.currentChannel.playlists[playlistId].items) {
     if (playlistItemsContainer.classList.contains("shrink")) {
       playlistItemsContainer.classList.remove("shrink");
     }
@@ -311,6 +315,9 @@ const renderPlaylistItems = function(playlistId, playlistContainer) {
     }
     return;
   }
+
+  const loadingIcon = document.querySelector(`.playlist-container[data-playlist-id=${playlistId}] .playlist-loading-spinner`);
+  loadingIcon.classList.add("show");
 
   const callback = function(playlistItemData) {
     app.currentChannel.playlists[playlistId].items = playlistItemData.map(item => {
@@ -352,6 +359,7 @@ const renderPlaylistItems = function(playlistId, playlistContainer) {
     });
 
     playlistItemsContainer.classList.remove("shrink");
+    loadingIcon.classList.remove("show");
   }; //end callback()
 
   getYouTubePlaylistItems(playlistId, callback);

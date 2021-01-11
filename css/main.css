@@ -199,6 +199,18 @@ button:focus {
   font-size: 0.75rem;
 }
 
+.playlist-loading-spinner {
+  display: none;
+  color: lightgray;
+  margin-left: auto;
+  margin-right: 1rem;
+  animation: spin 1s linear infinite normal both;
+}
+
+.playlist-loading-spinner.show {
+  display: inline-block;
+}
+
 .playlist-items-container {
   display: flex;
   flex-direction: column;
@@ -274,11 +286,6 @@ button:focus {
   background-color: rgb(50,50,50);
   width: 100%;
   margin-top: 1rem;
-}
-
-@keyframes circle-spin {
-  0% {transform: rotate(0);}
-  100% {transform: rotate(360deg);}
 }
 
 .playlist-item-selection-list-container {
@@ -411,10 +418,10 @@ button:focus {
 
 .playlist-item-selection-move-dialog-move-item[data-copy-status="inprogress"] .playlist-item-selection-move-dialog-move-item-copy-status {
   color: rgb(0,128,255);
-  animation: inprogress-spin 1s linear infinite normal both;
+  animation: spin 1s linear infinite normal both;
 }
 
-@keyframes inprogress-spin {
+@keyframes spin {
   0% {transform: rotate(0);}
   100% {transform: rotate(360deg);}
 }

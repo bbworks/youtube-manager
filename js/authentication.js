@@ -35,29 +35,30 @@ const initializeGoogleApis = function(callback) {
     discoveryDocs: discoveryDocs,
   })
     .then(()=>{
-    console.info("Initialized Google Client API.");
-    //Listen for sign in state changes
-    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+      console.info("Initialized Google Client API.");
+      //Listen for sign in state changes
+      gapi.auth2.getAuthInstance().isSignedIn.listen(
+        isSignedIn => updateSigninStatus(isSignedIn, callback)
+      );
 
-    //Handle initial sign in state
-    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+      //Handle initial sign in state
+      updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), callback);
 
-    addClickEventListener(authorizeButton, handleAuthClick);
-    addClickEventListener(signoutButton, handleSignoutClick);
-
-    //Run the callback functions
-    callback();
-  });
+      addClickEventListener(authorizeButton, handleAuthClick);
+      addClickEventListener(signoutButton, handleSignoutClick);
+    });
 };
 
 //Update UI sign in state changes
-const updateSigninStatus = function(isSignedIn) {
+const updateSigninStatus = function(isSignedIn, callback) {
   console.info("Updating sign in status...");
   if (isSignedIn) {
     authorizeButton.style.display = "none";
     signoutButton.style.display = "block";
     signoutButton.removeAttribute("disabled");
-    //getChannel(app.currentChannel);
+
+    //Run the callback functions
+    callback();
   }
   else {
     authorizeButton.style.display = "block";

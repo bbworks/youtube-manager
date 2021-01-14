@@ -128,7 +128,7 @@ const buildResourceContainer = function(resourceType, resource) {
               `${(resource.definition === "hd" ? `<span class=\"playlist-item-definition-icon\" title=\"High Definition\">HD</span>` : "")}` +
               `${(resource.caption === true ? `<i class=\"playlist-item-caption-icon fas fa-closed-captioning\" title=\"Closed Captioning\"></i> ` : "")}` +
             `</div> `+
-            `<h5 class=\"playlist-item-channel-title\" title=\"${resource.channelTitle}\">${resource.channelTitle}</h5> `+
+            `${(resource.channelTitle ? `<h5 class=\"playlist-item-channel-title\" title=\"${resource.channelTitle}\">${resource.channelTitle}</h5> ` : "")}` +
               `<i class="playlist-item-privacy-icon ${privacyStatusClass}" title="${privacyStatusTooltip}"></i> `+
             `<div class=\"playlist-item-description\" title=\"${resource.description}\"> `+
               `${(resource.description.length <= 80 ? resource.description : resource.description.substring(0,77)+"...")} `+
@@ -268,14 +268,22 @@ const updatePlaylistItems = function(playlistId) {
         );
       };
 
-      app.currentChannel.playlists[playlistId].items = videosData.map(videoData=>{
+      app.currentChannel.playlists[playlistId].items = app.currentChannel.playlists[playlistId].items.map(playlistItem => {
+        //Declare variables
+        const videoResource = videosData.filter(videoData=>playlistItem.videoId === videoData.id)[0];
+
+        //If there is no video resource (e.g. the video is private),
+        // just return what we have from our playlist
+        if (!videoResource) return playlistItem;
+
+        //Otherwise, return more data
         return {
-          ...app.currentChannel.playlists[playlistId].items.filter(playlistItem=>playlistItem.videoId === videoData.id)[0],
+          ...playlistItem,
           ...{
-            channelTitle: videoData.snippet.channelTitle,
-            caption: videoData.contentDetails.caption,
-            definition: videoData.contentDetails.definition,
-            duration: convertISO8601DurationToString(videoData.contentDetails.duration),
+            channelTitle: videoResource.snippet.channelTitle,
+            caption: videoResource.contentDetails.caption,
+            definition: videoResource.contentDetails.definition,
+            duration: convertISO8601DurationToString(videoResource.contentDetails.duration),
           }
         };
       });

@@ -1,4 +1,8 @@
 const callYouTubeDataApiFunction = function(resourceType, method, params, pageToken, callback, errCallback) {
+  //Declare variables
+  let leftoverIds;
+  const listIdChunkLength = 50;
+
   //Build the request options
   const options = {
     ...{
@@ -17,6 +21,13 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
 
     //Only set the pageToken option if we're provided one
     if (pageToken) options.pageToken = pageToken;
+
+    //Check that we search no more than 50 ids per call,
+    // otherwise run with the first 50, and save the rest for
+    // a follow-up call
+    if (options.id && options.id !== "string" && options.id.length > 50) {
+      leftoverIds = options.id.splice(listIdChunkLength, options.id.length);
+    }
   }
 
   //Call the Google YouTube Data API, recursively
@@ -28,14 +39,22 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
           callYouTubeDataApiFunction(resourceType, method, options, response.result.nextPageToken, newPageData => {callback(new Array(...response.result.items, ...newPageData));});
         }
         else {
-          //If we're using a single id instead of expecting an arary,
-          // set the callback to use just the first item of the
-          // response.result.items or an array of items
-          if (options.id && typeof options.id === "string") {
-            callback(response.result.items[0]);
+          //Check that we didn't drop some ids because we
+          // had too many--if so, use these next and fetch again
+          if (leftoverIds) {
+            options.id = leftoverIds;
+            callYouTubeDataApiFunction(resourceType, method, options, null, newPageData => {callback(new Array(...response.result.items, ...newPageData));});
           }
-          else /*(options.id instanceof Array)*/ {
-            callback(new Array(...response.result.items));
+          else {
+            //If we're using a single id instead of expecting an arary,
+            // set the callback to use just the first item of the
+            // response.result.items or an array of items
+            if (options.id && typeof options.id === "string") {
+              callback(response.result.items[0]);
+            }
+            else /*(options.id instanceof Array)*/ {
+              callback(new Array(...response.result.items));
+            }
           }
         }
       }

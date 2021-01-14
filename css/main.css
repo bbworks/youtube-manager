@@ -249,9 +249,25 @@ button:focus {
     color: var(--accent-color);
 }
 
+.playlist-item-image-container {
+  position: relative;
+  height: 90px;
+}
+
 .playlist-item-image {
   display: block;
-  max-width: 40%;
+}
+
+.playlist-item-duration {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  color: white;
+  background-color: black;
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: bold;
 }
 
 .playlist-item-info {
@@ -259,8 +275,31 @@ button:focus {
 }
 
 .playlist-item-title {
+  display: inline;
   font-weight: lighter;
   transition: color 0.25s;
+}
+
+.playlist-item-channel-title {
+  font-size:  0.75rem;
+  font-weight: lighter;
+  margin: 0.25rem 0;
+  color: gray
+}
+
+.playlist-item-definition-icon {
+  color: white;
+  font-size: 0.625rem;
+  font-style: italic;
+  font-weight: bold;
+  background-color: rgb(175,175,175);;
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.2rem;
+}
+
+.playlist-item-caption-icon {
+  color: rgb(175,175,175);
+  font-size: 1rem;
 }
 
 .playlist-item-privacy-icon {
@@ -270,6 +309,7 @@ button:focus {
 }
 
 .playlist-item-description {
+  display: inline-block;
   font-size: 0.75rem;
 }
 

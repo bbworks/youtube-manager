@@ -73,6 +73,10 @@ const getYouTubePlaylistItems = function(playlistId, callback, errCallback) {
   callYouTubeDataApiFunction("playlistItems", "list", {"playlistId": playlistId}, null, callback, errCallback);
 };
 
+const getYouTubeVideo = function(videoId, callback, errCallback) {
+  callYouTubeDataApiFunction("videos", "list", {"id": videoId}, null, callback, errCallback);
+};
+
 const addYouTubePlaylistItem = function(resourceObject, callback, errCallback) {
   callYouTubeDataApiFunction("playlistItems", "insert", {"resource": resourceObject}, null, callback, errCallback);
 };

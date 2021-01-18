@@ -73,6 +73,9 @@ const updateCurrentChannel = function(username) {
   //Update the selected useranme option
   usernameSelect.value = username;
 
+  //Clear app selection properties
+  resetAppProps();
+
   //Render the playlists
   updatePlaylists(app.currentChannel.id);
 };
@@ -106,7 +109,7 @@ const buildResourceContainer = function(resourceType, resource) {
             `<div class=\"playlist-info\"> `+
               `<h3 class=\"playlist-title\" title=\"${resource.title}\">${(resource.title.length <= 50 ? resource.title : resource.title.substring(0,47)+"...")}</h3>`+
               `<i class="playlist-privacy-icon ${privacyStatusClass}" title=\"${privacyStatusTooltip}\"></i> `+
-              `<span class=\"playlist-video-count\">${resource.itemCount} video${(resource.itemCount > 1 ? "s" : "")}</span> `+
+              `<span class=\"playlist-video-count\">${resource.itemCount} video${(resource.itemCount !== 1 ? "s" : "")}</span> `+
               `<div class=\"playlist-description\" title=\"${resource.description}\"> `+
                 `${(resource.description.length <= 100 ? resource.description : resource.description.substring(0,97)+"...")} `+
               `</div> `+
@@ -189,16 +192,7 @@ const renderPlaylists = function(channelId) {
     //Add the click event listener for the playlist main section
     playlistContainer = document.querySelector(`.playlist-container[data-playlist-id=\"${playlistId}\"]`); //reset to the DOM element after overwritting outerHTML
     const playlistMainSection = playlistContainer.querySelector(".playlist-section-main");
-    addClickEventListener(playlistMainSection, event => {
-      //If we don't yet have our playlist's playlist items,
-      // update the playlist items for the playlist
-      if (!app.currentChannel.playlists[playlistId].items) {
-        displayPlaylistLoadingIcon(playlistId, true);
-        updatePlaylistItems(playlistId);
-        return;
-      }
-      togglePlaylistItems(playlistId);
-    });
+    addClickEventListener(playlistMainSection, event=>handlePlaylistClick(playlistId));
   }; //end for(playlistId in playlists)
 };
 
@@ -268,25 +262,27 @@ const updatePlaylistItems = function(playlistId) {
         );
       };
 
-      app.currentChannel.playlists[playlistId].items = app.currentChannel.playlists[playlistId].items.map(playlistItem => {
-        //Declare variables
-        const videoResource = videosData.filter(videoData=>playlistItem.videoId === videoData.id)[0];
+      if (videosData) {
+        app.currentChannel.playlists[playlistId].items = app.currentChannel.playlists[playlistId].items.map(playlistItem => {
+          //Declare variables
+          const videoResource = videosData.filter(videoData=>playlistItem.videoId === videoData.id)[0];
 
-        //If there is no video resource (e.g. the video is private),
-        // just return what we have from our playlist
-        if (!videoResource) return playlistItem;
+          //If there is no video resource (e.g. the video is private),
+          // just return what we have from our playlist
+          if (!videoResource) return playlistItem;
 
-        //Otherwise, return more data
-        return {
-          ...playlistItem,
-          ...{
-            channelTitle: videoResource.snippet.channelTitle,
-            caption: videoResource.contentDetails.caption,
-            definition: videoResource.contentDetails.definition,
-            duration: convertISO8601DurationToString(videoResource.contentDetails.duration),
-          }
-        };
-      });
+          //Otherwise, return more data
+          return {
+            ...playlistItem,
+            ...{
+              channelTitle: videoResource.snippet.channelTitle,
+              caption: videoResource.contentDetails.caption,
+              definition: videoResource.contentDetails.definition,
+              duration: convertISO8601DurationToString(videoResource.contentDetails.duration),
+            }
+          };
+        });
+      }
 
       //Render the playlists items
       renderPlaylistItems(playlistId);
@@ -310,19 +306,8 @@ const renderPlaylistItems = function(playlistId) {
 
     //Add the click event listener for the playlist item container
     playlistItemContainer = document.querySelector(`.playlist-item-container[data-playlist-item-id=\"${playlistItem.id}\"]`); //reset to the DOM element after overwritting outerHTML
-    addClickEventListener(playlistItemContainer, event=>{
-      const checkbox = playlistItemContainer.querySelector(".checkbox-input");
-      checkbox.checked = !checkbox.checked;
-      playlistItemContainer.setAttribute("data-checked", checkbox.checked);
-
-      checkDisplayPlaylistItemSelectionContainer();
-
-      updatePlaylistItemSelectionList(playlistItem, checkbox.checked);
-    });
+    addClickEventListener(playlistItemContainer, event=>handlePlaylistItemCheck(playlistItem, playlistItemContainer));
   });
-
-  //Set the app singleton property
-  app.selectedPlaylistItems = {};
 
   //Expand the playlist items container and remove the loading icon
   playlistItemsContainer.classList.remove("shrink");
@@ -374,7 +359,24 @@ const checkDisplayPlaylistItemSelectionContainer = function() {
   }
 };
 
+const checkDisplayPlaylistItemSelectionListContainer = function() {
+  //Declare variables
+  const playlistItemSelectionListContainer = document.getElementById("playlist-item-selection-list-container");
+  const playlistItemSelectionContainer = document.getElementById("playlist-item-selection-container");
+
+  const shouldNotDisplay = !playlistItemSelectionContainer.classList.contains("display");
+
+  //Assume if the .playlist-item-selection-container is not displayed,
+  // we should hide our .playlist-item-selection-list-container as well
+  // Otherwise, if it's displayed, the .playlist-item-selection-list-container
+  // can be displayed or not
+  if (shouldNotDisplay) {
+    playlistItemSelectionListContainer.classList.remove("display");
+  }
+};
+
 const updatePlaylistItemSelectionList = function(playlistItem, shouldInsertNotDelete) {
+  //Add or remove the playlist item selection
   if (shouldInsertNotDelete) {
     if (!app.selectedPlaylistItems[playlistItem.id]) {
       app.selectedPlaylistItems[playlistItem.id] = playlistItem;
@@ -466,11 +468,12 @@ const renderMoveDialogMoveItem = function(videoId, thumbnail, title, status) {
   moveItem = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${videoId}\"]`);
 };
 
-const updateDeleteDialogMoveItem = function(videoId, status) {
-  renderDeleteDialogMoveItem(videoId, status);
+const updateDeleteDialogMoveItem = function(videoId, thumbnail, title, status) {
+  renderDeleteDialogMoveItem(videoId, thumbnail, title, status);
 };
 
-const renderDeleteDialogMoveItem = function(videoId, status) {
+const renderDeleteDialogMoveItem = function(videoId, thumbnail, title, status) {
+  //Declare variables
   let statusText;
 
   switch (status) {
@@ -492,28 +495,44 @@ const renderDeleteDialogMoveItem = function(videoId, status) {
   const playlistItemSelectionMoveDialogMoveItemContainer = document.getElementById("playlist-item-selection-move-dialog-move-item-container");
   let moveItem = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${videoId}\"]`); //let so we can reassign after outerHTML overwrite
 
+  //Set the status data attribute
   moveItem.setAttribute("data-remove-status", status);
 
+  //Display the status icon and set the inner text
   const moveItemDeleteStatus = moveItem.querySelector(".playlist-item-selection-move-dialog-move-item-delete-status");
   if (moveItemDeleteStatus.style.display !== "inline-block") moveItemDeleteStatus.style.display = "inline-block";
   moveItemDeleteStatus.innerText = statusText;
-
-
-  //Update the HTML of the move item
-  moveItem.outerHTML = buildMoveDialogMoveItem(videoId, thumbnail, title, status);
-  moveItem = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${videoId}\"]`);
 };
 
 const renderPlaylistItemSelectionMoveDialogPlaylistList = function() {
+  //Declare variables
   const playlistItemSelectionMoveDialogPlaylistList = document.getElementById("playlist-item-selection-move-dialog-playlist-list");
 
+  //Reset the list container innerHTML
   playlistItemSelectionMoveDialogPlaylistList.innerHTML = "";
-    for(const playlistId in app.currentChannel.playlists) {
-      const playlist = app.currentChannel.playlists[playlistId];
-      const element = document.createElement("div");
-      playlistItemSelectionMoveDialogPlaylistList.appendChild(element);
-      element.outerHTML = buildResourceContainer("playlist", playlist);
-    };
+
+  //Add a container for each playlist
+  for(const playlistId in app.currentChannel.playlists) {
+    const playlist = app.currentChannel.playlists[playlistId];
+    let playlistContainer = document.createElement("div");
+    playlistItemSelectionMoveDialogPlaylistList.appendChild(playlistContainer);
+    playlistContainer.outerHTML = buildResourceContainer("playlist", playlist);
+    playlistContainer = document.querySelector(`.playlist-item-selection-move-dialog-playlist-list .playlist-container[data-playlist-id=\"${playlistId}\"]`);
+
+    //Attach event listener
+    addClickEventListener(playlistContainer, event=>handlePlaylistItemSelectionMoveDialogPlaylistClick(playlistId));
+  };
+};
+
+const handlePlaylistClick = function(playlistId) {
+  //If we don't yet have our playlist's playlist items,
+  // update the playlist items for the playlist
+  if (!app.currentChannel.playlists[playlistId].items) {
+    displayPlaylistLoadingIcon(playlistId, true);
+    updatePlaylistItems(playlistId);
+    return;
+  }
+  togglePlaylistItems(playlistId);
 };
 
 const handlePlaylistItemSelectionListButtonClick = function() {
@@ -527,47 +546,127 @@ const handlePlaylistItemSelectionListButtonClick = function() {
   }
 };
 
-const handlePlaylistItemSelectionMoveButtonClick = function() {
-  const playlistItemSelectionMoveDialogBackground = document.getElementById("playlist-item-selection-move-dialog-background");
+const resetAppProps = function() {
+  //Clear app selection properties
+  app.selectedPlaylist = null;
+  app.selectedPlaylistItems = {};
+};
 
-  renderPlaylistItemSelectionMoveDialogPlaylistList();
+const resetApp = function() {
+  //Clear playlist item checkbox selections
+  for(const playlistItemId in app.selectedPlaylistItems) {
+    const playlistItem = app.selectedPlaylistItems[playlistItemId];
+    const playlistItemElement = document.querySelector(`.playlist-item-container[data-playlist-item-id=\"${playlistItemId}\"]`)
+    const playlistItemElementCheckbox = playlistItemElement.querySelector(".checkbox-input");
+
+    handlePlaylistItemCheck(playlistItem, playlistItemElement);
+  }
+
+  //Unselect .playlist-item-selection-move-dialog-playlist-list .playlist-container
+  // document.querySelectorAll(".playlist-item-selection-move-dialog-playlist-list .playlist-container")
+  //   .forEach(playlistContainer=>{
+  //     if (playlistContainer.classList.contains("selected")) {
+  //       playlistContainer.classList.remove("selected");
+  //     }
+  //   });
+
+  //Clear and hide the .playlist-item-selection-move-dialog
+  const playlistItemSelectionMoveDialogBackground = document.getElementById("playlist-item-selection-move-dialog-background");
+  const playlistItemSelectionMoveDialogPlaylistList = document.getElementById("playlist-item-selection-move-dialog-playlist-list");
+  const playlistItemSelectionMoveDialogSelectedPlaylist = document.getElementById("playlist-item-selection-move-dialog-selected-playlist");
+
+  playlistItemSelectionMoveDialogPlaylistList.innerHTML = "";
+  playlistItemSelectionMoveDialogSelectedPlaylist.innerText = "";
 
   if (playlistItemSelectionMoveDialogBackground.classList.contains("display")) {
     playlistItemSelectionMoveDialogBackground.classList.remove("display");
   }
-  else {
-    playlistItemSelectionMoveDialogBackground.classList.add("display");
+
+  //Wipe move items
+  const playlistItemSelectionMoveDialogMoveItemContainer = document.getElementById("playlist-item-selection-move-dialog-move-item-container");
+  playlistItemSelectionMoveDialogMoveItemContainer.innerHTML = "";
+
+  //Collapse all .playlist-item-containers
+  document.querySelectorAll(".playlist-items-container:not(.shrink)")
+    .forEach(playlistItemContainer=>playlistItemContainer.classList.add("shrink"));
+
+  //Clear app selection properties
+  resetAppProps();
+};
+
+const handlePlaylistItemCheck = function(playlistItem, playlistItemContainer) {
+  const checkbox = playlistItemContainer.querySelector(".checkbox-input");
+  checkbox.checked = !checkbox.checked;
+  playlistItemContainer.setAttribute("data-checked", checkbox.checked);
+
+  //Add or remove the playlist item selection
+  updatePlaylistItemSelectionList(playlistItem, checkbox.checked);
+
+  //Check whether the .playlist-item-selection-container should
+  // be displayed or not (app.selectedPlaylistItems > 0)
+  checkDisplayPlaylistItemSelectionContainer();
+
+  //Check whether the .playlist-item-selection-list-container should
+  // be displayed or not (.playlist-item-selection-container.display)
+  checkDisplayPlaylistItemSelectionListContainer();
+};
+
+const handlePlaylistItemSelectionMoveDialogPlaylistClick = function(playlistId) {
+  //Declare variables
+  const playlistItemSelectionMoveDialogSelectedPlaylist = document.getElementById("playlist-item-selection-move-dialog-selected-playlist");
+  const selectedPlaylistContainer = document.querySelector(`.playlist-item-selection-move-dialog .playlist-container[data-playlist-id=\"${playlistId}\"]`);
+
+  //Declare functions
+  const checkDisplayPlaylistItemSelectionMoveDialogCopyButton = function() {
+    if (document.querySelectorAll("#playlist-item-selection-move-dialog .playlist-container:not(.selected)").length > 0) {
+      const copyButton = document.getElementById("playlist-item-selection-move-dialog-copy-button");
+      copyButton.removeAttribute("disabled");
+    }
+    else {
+      const copyButton = document.getElementById("playlist-item-selection-move-dialog-copy-button");
+      copyButton.setAttribute("disabled", "true");
+    }
+  };
+
+  //Set our app singleton property
+  app.selectedPlaylist = app.currentChannel.playlists[playlistId];
+
+  //Display the title of our selected playlist
+  playlistItemSelectionMoveDialogSelectedPlaylist.innerText = app.selectedPlaylist.title;
+
+  //Set our selected playlist
+  if (!selectedPlaylistContainer.classList.contains("selected")) {
+    selectedPlaylistContainer.classList.add("selected");
   }
 
-  new Array(...document.querySelectorAll("#playlist-item-selection-move-dialog .playlist-container")).forEach(element=>{
-    addClickEventListener(element, event=>{
-      const playlistContainers = new Array(...document.querySelectorAll("#playlist-item-selection-move-dialog .playlist-container"));
-      const playlistItemSelectionMoveDialogSelectedPlaylist = document.getElementById("playlist-item-selection-move-dialog-selected-playlist");
-      app.selectedPlaylist = app.currentChannel.playlists[element.getAttribute("data-playlist-id")];
-
-      playlistItemSelectionMoveDialogSelectedPlaylist.innerText = app.currentChannel.playlists[element.getAttribute("data-playlist-id")].title;
-
-      if (element.classList.contains("unselected")) {
-        element.classList.remove("unselected");
-      }
-
-      playlistContainers.filter(playlistElement => playlistElement !== element)
-        .forEach(eachElement=>{
-          if (!eachElement.classList.contains("unselected")) {
-              eachElement.classList.add("unselected");
-          }
-        });
-
-      if (document.querySelectorAll("#playlist-item-selection-move-dialog .playlist-container.unselected").length > 0) {
-        const copyButton = document.getElementById("playlist-item-selection-move-dialog-copy-button");
-        copyButton.removeAttribute("disabled");
-      }
-      else {
-        const copyButton = document.getElementById("playlist-item-selection-move-dialog-copy-button");
-        copyButton.setAttribute("disabled", "true");
+  //Make sure our other playlists are not selected
+  document.querySelectorAll(`.playlist-item-selection-move-dialog .playlist-container:not([data-playlist-id=\"${playlistId}\"])`)
+    .forEach(playlistContainer=>{
+      if (playlistContainer.classList.contains("selected")) {
+        playlistContainer.classList.remove("selected");
       }
     });
-  });
+
+  //Enable or disable the copy button depending on if we have selected a playlist
+  checkDisplayPlaylistItemSelectionMoveDialogCopyButton();
+};
+
+const renderPlaylistItemSelectionMoveDialog = function() {
+  //Render the playlist containers to the screen
+  renderPlaylistItemSelectionMoveDialogPlaylistList();
+};
+
+const handlePlaylistItemSelectionMoveButtonClick = function() {
+  //Declare variables
+  const playlistItemSelectionMoveDialogBackground = document.getElementById("playlist-item-selection-move-dialog-background");
+
+  //Create the move dialog
+  renderPlaylistItemSelectionMoveDialog();
+
+  //If we aren't displaying our move dialog, display it
+  if (!playlistItemSelectionMoveDialogBackground.classList.contains("display")) {
+    playlistItemSelectionMoveDialogBackground.classList.add("display");
+  }
 };
 
 const handlePlaylistItemSelectionMoveDialogBackButtonClick = function() {
@@ -680,11 +779,11 @@ const handlePlaylistItemSelectionDeleteDialogRemoveButtonClick = function() {
     deleteYouTubePlaylistItem(
       insertedPlaylistItem.id,
       response => {
-        updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, "success");
+        updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, insertedPlaylistItem.thumbnail.url, insertedPlaylistItem.title, "success");
         callback(response);
       },
       err => {
-        updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, "failure");
+        updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, insertedPlaylistItem.thumbnail.url, insertedPlaylistItem.title, "failure");
         callback(false);
       },
     );

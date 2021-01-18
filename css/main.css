@@ -426,8 +426,12 @@ button:focus {
   overflow-y: auto;
 }
 
-.playlist-item-selection-move-dialog .playlist-container.unselected {
+.playlist-item-selection-move-dialog .playlist-container {
     opacity: 0.5;
+}
+
+.playlist-item-selection-move-dialog .playlist-container.selected {
+    opacity: unset;
 }
 
 .playlist-item-selection-move-dialog-move-item-container {

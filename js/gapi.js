@@ -15,6 +15,17 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
     ...params
   };
 
+  //Check that, if we provided SOMETHING as an id,
+  // that we didn't pass in a null/empty string/empty array
+  if (
+    options.id !== undefined &&  (
+      options.id === null ||
+      options.id.length === 0
+    )
+  ) {
+    return callback(null);
+  }
+
   if (method === "list") {
     //Set the maximum amount of results per call
     options.maxResults = 50;
@@ -25,7 +36,7 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
     //Check that we search no more than 50 ids per call,
     // otherwise run with the first 50, and save the rest for
     // a follow-up call
-    if (options.id && options.id !== "string" && options.id.length > 50) {
+    if (options.id && typeof options.id !== "string" && options.id.length > 50) {
       leftoverIds = options.id.splice(listIdChunkLength, options.id.length);
     }
   }

@@ -46,6 +46,10 @@ const initializeGoogleApis = function(callback) {
 
       addClickEventListener(authorizeButton, handleAuthClick);
       addClickEventListener(signoutButton, handleSignoutClick);
+    })
+    .catch(err=>{
+      console.error("Failed to initialize Google Client API.", err.error, err.details);
+      // window.alert("Failed to initialize Google Client API. The application failed.", err);
     });
 };
 

@@ -11,3 +11,10 @@ const addClickEventListener = function(element, func) {
     func(event);
   });
 };
+
+const scrollToChild = function(container, child, topPadding) {
+  container.scroll({
+    top: child.offsetTop - topPadding,
+    behavior: "smooth"
+  });
+};

@@ -68,7 +68,7 @@ const updateCurrentChannel = function(username) {
   const channel = app.channels[username];
 
   //Update the current channel
-  app.currentChannel = channel;
+  app.currentChannel = username;
 
   //Update the selected useranme option
   usernameSelect.value = username;
@@ -77,8 +77,12 @@ const updateCurrentChannel = function(username) {
   resetAppProps();
 
   //Render the playlists
-  updatePlaylists(app.currentChannel.id);
+  updatePlaylists(app.channels[app.currentChannel].id);
 };
+
+const convertToHtml = function(text) {
+  return text.toString().replace("\"", "&quot;");
+}
 
 const buildResourceContainer = function(resourceType, resource) {
   //Declare variables
@@ -103,15 +107,15 @@ const buildResourceContainer = function(resourceType, resource) {
   //Return the resource HTML
   switch (resourceType) {
     case "playlist":
-      return `<div class=\"playlist-container\" data-playlist-id=\"${resource.id}\"> `+
+      return `<div class=\"playlist-container\" data-playlist-id=\"${convertToHtml(resource.id)}\"> `+
           `<section class=\"playlist-section playlist-section-main\"> `+
-            `<img class=\"playlist-image\" src=\"${resource.thumbnail.url}\"></img> `+
+            `<img class=\"playlist-image\" src=\"${convertToHtml(resource.thumbnail.url)}\"></img> `+
             `<div class=\"playlist-info\"> `+
-              `<h3 class=\"playlist-title\" title=\"${resource.title}\">${(resource.title.length <= 50 ? resource.title : resource.title.substring(0,47)+"...")}</h3>`+
-              `<i class="playlist-privacy-icon ${privacyStatusClass}" title=\"${privacyStatusTooltip}\"></i> `+
-              `<span class=\"playlist-video-count\">${resource.itemCount} video${(resource.itemCount !== 1 ? "s" : "")}</span> `+
-              `<div class=\"playlist-description\" title=\"${resource.description}\"> `+
-                `${(resource.description.length <= 100 ? resource.description : resource.description.substring(0,97)+"...")} `+
+              `<h3 class=\"playlist-title\" title=\"${convertToHtml(resource.title)}\">${convertToHtml((resource.title.length <= 50 ? resource.title : resource.title.substring(0,47)+"..."))}</h3>`+
+              `<i class="playlist-privacy-icon ${convertToHtml(privacyStatusClass)}" title=\"${convertToHtml(privacyStatusTooltip)}\"></i> `+
+              `<span class=\"playlist-video-count\">${convertToHtml(resource.itemCount)} video${convertToHtml((resource.itemCount !== 1 ? "s" : ""))}</span> `+
+              `<div class=\"playlist-description\" title=\"${convertToHtml(resource.description)}\"> `+
+                `${convertToHtml((resource.description.length <= 100 ? resource.description : resource.description.substring(0,97)+"..."))} `+
               `</div> `+
             `</div> `+
             `<i class=\"playlist-loading-spinner fas fa-spinner\"></i> `+
@@ -120,21 +124,21 @@ const buildResourceContainer = function(resourceType, resource) {
           `</div> `+
         `</div>`;
     case "playlistItem":
-      return `<div class=\"playlist-item-container\" data-playlist-item-id=\"${resource.id}\" data-checked=\"false\">`+
+      return `<div class=\"playlist-item-container\" data-playlist-item-id=\"${convertToHtml(resource.id)}\" data-checked=\"false\">`+
           `<div class="playlist-item-image-container"> `+
-            `<img class=\"playlist-item-image\" src=\"${resource.thumbnail.url}\"></img>`+
-            `${(resource.duration ? `<span class="playlist-item-duration">${resource.duration}</span>` : "")}` +
+            `<img class=\"playlist-item-image\" src=\"${convertToHtml(resource.thumbnail.url)}\"></img>`+
+            `${(resource.duration ? `<span class="playlist-item-duration">${convertToHtml(resource.duration)}</span>` : "")}` +
           `</div> `+
           `<div class=\"playlist-item-info\">`+
             `<div class=\"playlist-item-title-container\"> `+
-              `<h3 class=\"playlist-item-title\" title=\"${resource.title}\">${(resource.title.length <= 50 ? resource.title : resource.title.substring(0,47)+"...")}</h3> `+
+              `<h3 class=\"playlist-item-title\" title=\"${convertToHtml(resource.title)}\">${convertToHtml((resource.title.length <= 50 ? resource.title : resource.title.substring(0,47)+"..."))}</h3> `+
               `${(resource.definition === "hd" ? `<span class=\"playlist-item-definition-icon\" title=\"High Definition\">HD</span>` : "")}` +
               `${(resource.caption === true ? `<i class=\"playlist-item-caption-icon fas fa-closed-captioning\" title=\"Closed Captioning\"></i> ` : "")}` +
             `</div> `+
-            `${(resource.channelTitle ? `<h5 class=\"playlist-item-channel-title\" title=\"${resource.channelTitle}\">${resource.channelTitle}</h5> ` : "")}` +
-              `<i class="playlist-item-privacy-icon ${privacyStatusClass}" title="${privacyStatusTooltip}"></i> `+
-            `<div class=\"playlist-item-description\" title=\"${resource.description}\"> `+
-              `${(resource.description.length <= 80 ? resource.description : resource.description.substring(0,77)+"...")} `+
+            `${(resource.channelTitle ? `<h5 class=\"playlist-item-channel-title\" title=\"${convertToHtml(resource.channelTitle)}\">${convertToHtml(resource.channelTitle)}</h5> ` : "")}` +
+              `<i class="playlist-item-privacy-icon ${convertToHtml(privacyStatusClass)}" title="${convertToHtml(privacyStatusTooltip)}"></i> `+
+            `<div class=\"playlist-item-description\" title=\"${convertToHtml(resource.description)}\"> `+
+              `${convertToHtml((resource.description.length <= 80 ? resource.description : resource.description.substring(0,77)+"..."))} `+
             `</div>`+
           `</div>`+
           `<label class=\"checkbox playlist-item-checkbox\"> `+
@@ -151,7 +155,7 @@ const updatePlaylists = function(channelId) {
   //Get the channel's playlist data
   getYouTubePlaylists(channelId, playlistsData => {
     //Set app singleton property
-    app.currentChannel.playlists = {};
+    app.channels[app.currentChannel].playlists = {};
 
     //Save the playlists
     playlistsData.forEach(playlistData => {
@@ -167,7 +171,7 @@ const updatePlaylists = function(channelId) {
         itemCount: playlistData.contentDetails.itemCount,
       };
 
-      app.currentChannel.playlists[playlist.id] = playlist;
+      app.channels[app.currentChannel].playlists[playlist.id] = playlist;
     });
 
     //Render the playlists to the playlists container
@@ -183,8 +187,8 @@ const renderPlaylists = function(channelId) {
   playlistsContainer.innerHTML = "";
 
   //Add the playlist container for each playlist
-  for(const playlistId in app.currentChannel.playlists) {
-    const playlist = app.currentChannel.playlists[playlistId];
+  for(const playlistId in app.channels[app.currentChannel].playlists) {
+    const playlist = app.channels[app.currentChannel].playlists[playlistId];
     let playlistContainer = document.createElement("div"); //let so we can reassign after outerHTML overwrite
     playlistsContainer.appendChild(playlistContainer);
     playlistContainer.outerHTML = buildResourceContainer("playlist", playlist);
@@ -200,7 +204,7 @@ const updatePlaylistItems = function(playlistId) {
   //Get the playlist's playlistItems
   getYouTubePlaylistItems(playlistId, playlistItemsData => {
     //Set the app singleton property
-    app.currentChannel.playlists[playlistId].items = [];
+    app.channels[app.currentChannel].playlists[playlistId].items = [];
 
     //Save the playlist items`
     playlistItemsData.forEach(playlistData => {
@@ -218,11 +222,11 @@ const updatePlaylistItems = function(playlistId) {
         privacyStatus: playlistData.status.privacyStatus,
       };
 
-      app.currentChannel.playlists[playlistId].items.push(playlistItem);
+      app.channels[app.currentChannel].playlists[playlistId].items.push(playlistItem);
     });
 
     //Declare variables
-    const videoIds = app.currentChannel.playlists[playlistId].items.map(playlistItem=>playlistItem.videoId);
+    const videoIds = app.channels[app.currentChannel].playlists[playlistId].items.map(playlistItem=>playlistItem.videoId);
 
     //Get the playlist items' video resource
     getYouTubeVideo(videoIds, videosData => {
@@ -241,8 +245,8 @@ const updatePlaylistItems = function(playlistId) {
 
           return (days ? days+" " : "") +
             (hours ? hours+":" : "") +
-            (minutes ? (hours ? addLeadingZero(minutes) : minutes)+":" : "") +
-            (seconds ? addLeadingZero(seconds) : "")
+            (minutes ? (hours ? addLeadingZero(minutes) : minutes)+":" : "0:") +
+            (seconds ? addLeadingZero(seconds) : "00") /*make sure that even no seconds is really ":00" seconds*/
         };
 
         const replaceRegexString =
@@ -263,7 +267,7 @@ const updatePlaylistItems = function(playlistId) {
       };
 
       if (videosData) {
-        app.currentChannel.playlists[playlistId].items = app.currentChannel.playlists[playlistId].items.map(playlistItem => {
+        app.channels[app.currentChannel].playlists[playlistId].items = app.channels[app.currentChannel].playlists[playlistId].items.map(playlistItem => {
           //Declare variables
           const videoResource = videosData.filter(videoData=>playlistItem.videoId === videoData.id)[0];
 
@@ -299,7 +303,7 @@ const renderPlaylistItems = function(playlistId) {
   playlistItemsContainer.innerHTML = "";
 
   //Add the playlist item container for each playlist
-  app.currentChannel.playlists[playlistId].items.forEach(playlistItem => {
+  app.channels[app.currentChannel].playlists[playlistId].items.forEach(playlistItem => {
     let playlistItemContainer = document.createElement("div"); //let so we can reassign after outerHTML overwrite
     playlistItemsContainer.appendChild(playlistItemContainer);
     playlistItemContainer.outerHTML = buildResourceContainer("playlistItem", playlistItem);
@@ -441,12 +445,35 @@ const buildMoveDialogMoveItem = function(videoId, thumbnail, title, status) {
       break;
   }
 
-  return `<div class="playlist-item-selection-move-dialog-move-item" data-video-id="${videoId}" data-copy-status="${status}"> `+
-      `<i class="playlist-item-selection-move-dialog-move-item-copy-status ${statusIcon}"></i> `+
-      `<img class="playlist-item-selection-move-dialog-move-item-thumbnail" src="${thumbnail}"> `+
-      `<div class="playlist-item-selection-move-dialog-move-item-title">${title}</div> `+
+  return `<div class="playlist-item-selection-move-dialog-move-item" data-video-id="${convertToHtml(videoId)}" data-copy-status="${convertToHtml(status)}"> `+
+      `<i class="playlist-item-selection-move-dialog-move-item-copy-status ${convertToHtml(statusIcon)}"></i> `+
+      `<img class="playlist-item-selection-move-dialog-move-item-thumbnail" src="${convertToHtml(thumbnail)}"> `+
+      `<div class="playlist-item-selection-move-dialog-move-item-title">${convertToHtml(title)}</div> `+
       `<span class="playlist-item-selection-move-dialog-move-item-delete-status"></span>`+
     `</div>`;
+};
+
+const renderLinearGradient = function(element, degrees, leftColor, rightColor) {
+  //Declare variables
+  const regex = /linear-gradient\((\d+)deg, *(\w+|rgba?\( *\d{1,3} *, *\d{1,3} *, *\d{1,3} *(?:, *[\d\.]+ *)?\)) *, *(\w+|rgba?\( *\d{1,3} *, *\d{1,3} *, *\d{1,3} *(?:, *[\d\.]+ *)?\)) *\)/;
+  const defaultDegrees = "90";
+  const defaultColor = element.style.backgroundColor || window.getComputedStyle(element , null).getPropertyValue('background-color') || "white";
+
+  //Check if we already have a linear-gradeitn background
+  // if we do, use it as a default
+  const matches = element.style.background.match(regex);
+  if (matches) {
+    degrees = degrees || matches[1];
+    leftColor = leftColor || matches[2];
+    rightColor = rightColor || matches[3];
+  }
+
+  //If we neither specified the param, nor have one set, set the default
+  degrees = degrees || defaultDegrees;
+  leftColor = leftColor || defaultColor;
+  rightColor = rightColor || defaultColor;
+
+  element.style.background = `linear-gradient(${degrees}deg, ${leftColor}, ${rightColor})`;
 };
 
 const updateMoveDialogMoveItem = function(videoId, thumbnail, title, status) {
@@ -512,8 +539,8 @@ const renderPlaylistItemSelectionMoveDialogPlaylistList = function() {
   playlistItemSelectionMoveDialogPlaylistList.innerHTML = "";
 
   //Add a container for each playlist
-  for(const playlistId in app.currentChannel.playlists) {
-    const playlist = app.currentChannel.playlists[playlistId];
+  for(const playlistId in app.channels[app.currentChannel].playlists) {
+    const playlist = app.channels[app.currentChannel].playlists[playlistId];
     let playlistContainer = document.createElement("div");
     playlistItemSelectionMoveDialogPlaylistList.appendChild(playlistContainer);
     playlistContainer.outerHTML = buildResourceContainer("playlist", playlist);
@@ -527,7 +554,7 @@ const renderPlaylistItemSelectionMoveDialogPlaylistList = function() {
 const handlePlaylistClick = function(playlistId) {
   //If we don't yet have our playlist's playlist items,
   // update the playlist items for the playlist
-  if (!app.currentChannel.playlists[playlistId].items) {
+  if (!app.channels[app.currentChannel].playlists[playlistId].items) {
     displayPlaylistLoadingIcon(playlistId, true);
     updatePlaylistItems(playlistId);
     return;
@@ -592,6 +619,9 @@ const resetApp = function() {
 
   //Clear app selection properties
   resetAppProps();
+
+  ////Re-update and render our playlists
+  //updatePlaylists(app.channels[app.currentChannel].id);
 };
 
 const handlePlaylistItemCheck = function(playlistItem, playlistItemContainer) {
@@ -629,7 +659,7 @@ const handlePlaylistItemSelectionMoveDialogPlaylistClick = function(playlistId) 
   };
 
   //Set our app singleton property
-  app.selectedPlaylist = app.currentChannel.playlists[playlistId];
+  app.selectedPlaylist = app.channels[app.currentChannel].playlists[playlistId];
 
   //Display the title of our selected playlist
   playlistItemSelectionMoveDialogSelectedPlaylist.innerText = app.selectedPlaylist.title;
@@ -706,10 +736,18 @@ const handlePlaylistItemSelectionMoveDialogCopyButtonClick = function() {
       bodyParams,
       result => {
         updateMoveDialogMoveItem(insertedPlaylistItem.videoId, insertedPlaylistItem.thumbnail.url, insertedPlaylistItem.title, "success");
+        renderLinearGradient(playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${insertedPlaylistItem.videoId}\"]`), "90", "rgb(211,255,211)", null);
+        const playlistItemSelectionMoveDialog = document.getElementById("playlist-item-selection-move-dialog");
+        const insertedPlaylistItemElement = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${insertedPlaylistItem.videoId}\"]`);
+        scrollToChild(playlistItemSelectionMoveDialog, insertedPlaylistItemElement, 4);
         callback(result);
       },
       err => {
         updateMoveDialogMoveItem(insertedPlaylistItem.videoId, insertedPlaylistItem.thumbnail.url, insertedPlaylistItem.title, "failure");
+        renderLinearGradient(playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${insertedPlaylistItem.videoId}\"]`), "90", "rgb(255,211,211)", null);
+        const playlistItemSelectionMoveDialog = document.getElementById("playlist-item-selection-move-dialog");
+        const insertedPlaylistItemElement = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${insertedPlaylistItem.videoId}\"]`);
+        scrollToChild(playlistItemSelectionMoveDialog, insertedPlaylistItemElement, 4);
         callback(false);
       },
     );
@@ -776,14 +814,24 @@ const handlePlaylistItemSelectionDeleteDialogRemoveButtonClick = function() {
   const playlistItemSelectionMoveDialogMoveItemContainer = document.getElementById("playlist-item-selection-move-dialog-move-item-container");
 
   const removePlaylistItemFromSourcePlaylist = function(insertedPlaylistItem, callback) {
+    const insertedPlaylistItemElement = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${insertedPlaylistItem.videoId}\"]`);
+
     deleteYouTubePlaylistItem(
       insertedPlaylistItem.id,
       response => {
         updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, insertedPlaylistItem.thumbnail.url, insertedPlaylistItem.title, "success");
+        const playlistItemSelectionMoveDialog = document.getElementById("playlist-item-selection-move-dialog");
+        const insertedPlaylistItemElement = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${insertedPlaylistItem.videoId}\"]`);
+        renderLinearGradient(insertedPlaylistItemElement, null, null, "rgb(100,211,100)");
+        scrollToChild(playlistItemSelectionMoveDialog, insertedPlaylistItemElement, 4);
         callback(response);
       },
       err => {
         updateDeleteDialogMoveItem(insertedPlaylistItem.videoId, insertedPlaylistItem.thumbnail.url, insertedPlaylistItem.title, "failure");
+        const playlistItemSelectionMoveDialog = document.getElementById("playlist-item-selection-move-dialog");
+        const insertedPlaylistItemElement = playlistItemSelectionMoveDialogMoveItemContainer.querySelector(`.playlist-item-selection-move-dialog-move-item[data-video-id=\"${insertedPlaylistItem.videoId}\"]`);
+        renderLinearGradient(insertedPlaylistItemElement, null, null, "rgb(100,211,100)");
+        scrollToChild(playlistItemSelectionMoveDialog, insertedPlaylistItemElement, 4);
         callback(false);
       },
     );

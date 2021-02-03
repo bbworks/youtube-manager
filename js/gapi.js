@@ -60,7 +60,7 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
             //If we're using a single id instead of expecting an arary,
             // set the callback to use just the first item of the
             // response.result.items or an array of items
-            if (options.id && typeof options.id === "string") {
+            if ((options.id && typeof options.id === "string") || (resourceType === "channels" && options.mine === true)) {
               callback(response.result.items[0]);
             }
             else /*(options.id instanceof Array)*/ {
@@ -85,6 +85,10 @@ const callYouTubeDataApiFunction = function(resourceType, method, params, pageTo
 //Declare our specific functions
 const getYouTubeChannel = function(channelId, callback, errCallback) {
   callYouTubeDataApiFunction("channels", "list", {"id": channelId}, null, callback, errCallback);
+};
+
+const getYouTubeChannelMine = function(callback, errCallback) {
+  callYouTubeDataApiFunction("channels", "list", {"mine": true}, null, callback, errCallback);
 };
 
 const getYouTubePlaylist = function(playlistId, callback, errCallback) {

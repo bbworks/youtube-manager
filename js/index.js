@@ -14,67 +14,89 @@ const DEFAULT_USER = "BradleyBieraMusic";
 
 
 //Declare functions
-const updateUsernamesSelect = function() {
-  //Declare variables
-  const channelIds = Object.values(USERS);
+const startApp = function() {
+  updateUsernameContainer();
+};
 
+const stopApp = function() {
+  //Declare variables
+  const playlistsContainer = document.getElementById("playlists-container");
+
+  //Hide the playlists-container
+  toggleVisibility(playlistsContainer, false);
+};
+
+const updateUsernameContainer = function() {
   //Iterate through our USERS, getting their channel data
-  getYouTubeChannel(channelIds, channelsData => {
+  getYouTubeChannelMine(channelData => {
     //Set app singleton property
     app.channels = {};
 
-    //Save the channels
-    channelsData.forEach(channelData => {
-      const channel = {
-        id: channelData.id,
-        title: channelData.snippet.title,
-        description: channelData.snippet.description,
-        kind: channelData.kind,
-        publishedAt: channelData.snippet.publishedAt,
-        thumbnail: channelData.snippet.thumbnails.default,
-      };
+    //Save the channel
+    const channel = {
+      id: channelData.id,
+      title: channelData.snippet.title,
+      description: channelData.snippet.description,
+      kind: channelData.kind,
+      publishedAt: channelData.snippet.publishedAt,
+      thumbnail: channelData.snippet.thumbnails.default,
+    };
 
-      app.channels[channel.title] = channel;
-    });
+    app.channels[channel.title] = channel;
 
     //Render the channels to the usernames select
-    renderUsernamesSelect();
+    renderUsernameText(channel);
   }); //end getYouTubeChannel()
 };
 
-const renderUsernamesSelect = function() {
+const buildUsernameNode = function(channel) {
+  return `<a href="https://youtube.com/channel/${channel.id}" target="_blank">${channel.title}</a>`;
+};
+
+const renderUsernameText = function(channel) {
   //Declare variables
-  const usernameSelect = document.getElementById("username-select");
-  const channelTitles = Object.keys(app.channels);
+  const usernameText = document.getElementById("username-text");
+  const usernameContainer = document.getElementById("username-container");
 
-  //Reset the container content
-  usernameSelect.innerHTML = "";
+  //Set the container innerHTML
+  usernameText.innerHTML = buildUsernameNode(channel);
 
-  //Add the <option>s for each channel
-  channelTitles.sort().forEach(channelTitle => {
-    const channel = app.channels[channelTitle];
-    const element = document.createElement("option");
-    usernameSelect.appendChild(element);
-    element.outerHTML = `<option class=\"username-select-option\">${channel.title}</option>`;
-  });
+  //Unhide the container
+  toggleVisibility(usernameContainer, true);
 
   //Set our default channel
-  updateCurrentChannel(DEFAULT_USER);
+  updateCurrentChannel(channel.title);
+};
+
+const toggleVisibility = function(element, shouldBeVisible) {
+  //Declare variables
+  const isHidden = element.classList.contains("hidden");
+
+  //Either toggle the visibility, or set it according to the params
+  if (shouldBeVisible === null || shouldBeVisible === undefined)
+    shouldBeVisible = !isHidden;
+
+  if (shouldBeVisible && isHidden) {
+    element.classList.remove("hidden");
+  }
+  else if (!shouldBeVisible && !isHidden) {
+    element.classList.add("hidden");
+  }
 };
 
 const updateCurrentChannel = function(username) {
   //Declare variables
-  const usernameSelect = document.getElementById("username-select");
-  const channel = app.channels[username];
+  const usernameText = document.getElementById("username-text");
+  const playlistsContainer = document.getElementById("playlists-container");
 
   //Update the current channel
   app.currentChannel = username;
 
-  //Update the selected useranme option
-  usernameSelect.value = username;
-
   //Clear app selection properties
   resetAppProps();
+
+  //Un-hide the playlists-container
+  toggleVisibility(playlistsContainer, true);
 
   //Render the playlists
   updatePlaylists(app.channels[app.currentChannel].id);
@@ -895,7 +917,6 @@ addClickEventListener(document.getElementById("playlist-item-selection-move-dial
 addClickEventListener(document.getElementById("playlist-item-selection-move-dialog-copy-button"), handlePlaylistItemSelectionMoveDialogCopyButtonClick);
 addClickEventListener(document.getElementById("playlist-item-selection-delete-dialog-cancel-button"), handlePlaylistItemSelectionDeleteDialogCancelButtonClick);
 addClickEventListener(document.getElementById("playlist-item-selection-delete-dialog-remove-button"), handlePlaylistItemSelectionDeleteDialogRemoveButtonClick);
-document.getElementById("username-select").addEventListener("input", event=>updateCurrentChannel(event.target.value));
 
 //When the page finishes loading, start the application
-window.addEventListener("load", event=>initAuthorization(updateUsernamesSelect));
+window.addEventListener("load", event=>initAuthorization(startApp, stopApp));

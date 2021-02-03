@@ -84,8 +84,24 @@
   font-weight: lighter;
 }
 
-.username-select {
-  margin-bottom: 1rem;
+.username-container {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: right;
+  width: 100%;
+  padding: 1rem;
+}
+
+.username-container.hidden {
+  visibility: hidden;
+}
+
+.username-text {
+  color: var(--accent-color);
+}
+
+.username-text:hover {
+  text-decoration: underline;
 }
 
 .playlists-container {
@@ -93,6 +109,10 @@
   width: 100%;
   padding: 1rem 2rem;
   border-radius: 0.5rem;
+}
+
+.playlists-container.hidden {
+  display: none;
 }
 
 .playlist-container {

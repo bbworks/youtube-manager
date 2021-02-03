@@ -24,8 +24,18 @@ const fetchAuthCredentials = function(callback) {
     .catch(err=>{console.err(err); window.alert("Failed to get authorization credentials. The application failed.", err)});
 };
 
+//Load the Google Client, OAuth2.0 libraries
+const initAuthorization = function(loginCallback, logoutCallback) {
+  fetchAuthCredentials(()=>{loadGoogleApis(loginCallback, logoutCallback)});
+};
+
+const loadGoogleApis = function(loginCallback, logoutCallback) {
+  console.info("Loading Google Client, OAuth2.0 APIs...");
+  gapi.load("client:auth2", ()=>{initializeGoogleApis(loginCallback, logoutCallback)});
+};
+
 //Initialize Google Client library (which simultaneously initializes Google OAuth2.0 library) and set up sign in listeners
-const initializeGoogleApis = function(callback) {
+const initializeGoogleApis = function(loginCallback, logoutCallback) {
   console.info("Loaded Google Client, OAuth2.0 APIs.");
   console.info("Initializing Google Client API...");
   gapi.client.init({
@@ -38,11 +48,11 @@ const initializeGoogleApis = function(callback) {
       console.info("Initialized Google Client API.");
       //Listen for sign in state changes
       gapi.auth2.getAuthInstance().isSignedIn.listen(
-        isSignedIn => updateSigninStatus(isSignedIn, callback)
+        isSignedIn => updateSigninStatus(isSignedIn, loginCallback, logoutCallback)
       );
 
       //Handle initial sign in state
-      updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), callback);
+      updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), loginCallback, logoutCallback);
 
       addClickEventListener(authorizeButton, handleAuthClick);
       addClickEventListener(signoutButton, handleSignoutClick);
@@ -54,7 +64,7 @@ const initializeGoogleApis = function(callback) {
 };
 
 //Update UI sign in state changes
-const updateSigninStatus = function(isSignedIn, callback) {
+const updateSigninStatus = function(isSignedIn, loginCallback, logoutCallback) {
   console.info("Updating sign in status...");
   if (isSignedIn) {
     authorizeButton.style.display = "none";
@@ -62,11 +72,14 @@ const updateSigninStatus = function(isSignedIn, callback) {
     signoutButton.removeAttribute("disabled");
 
     //Run the callback functions
-    callback();
+    loginCallback();
   }
   else {
     authorizeButton.style.display = "block";
     signoutButton.style.display = "none";
+
+    //Run the callback functions
+    logoutCallback();
   }
   console.info("Updated sign in status.");
 };
@@ -96,14 +109,4 @@ const getChannel = function(channel) {
     }
     catch {console.error(err); alert("The application failed.");}
   });
-};
-
-//Load the Google Client, OAuth2.0 libraries
-const loadGoogleApis = function(callback) {
-  console.info("Loading Google Client, OAuth2.0 APIs...");
-  gapi.load("client:auth2", ()=>{initializeGoogleApis(callback)});
-};
-
-const initAuthorization = function(callback) {
-  fetchAuthCredentials(()=>{loadGoogleApis(callback)});
 };

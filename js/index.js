@@ -21,9 +21,14 @@ const startApp = function() {
 const stopApp = function() {
   //Declare variables
   const playlistsContainer = document.getElementById("playlists-container");
+  const usernameContainer = document.getElementById("username-container");
 
   //Hide the playlists-container
   toggleVisibility(playlistsContainer, false);
+
+  //Hide the username container
+  toggleVisibility(usernameContainer, false);
+
 };
 
 const updateUsernameContainer = function() {

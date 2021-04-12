@@ -21,7 +21,18 @@ const fetchAuthCredentials = function(callback) {
       console.info("Fetched authorization credentials.");
       callback();
     })
-    .catch(err=>{console.error(err); window.alert("Failed to get authorization credentials. The application failed.", err)});
+    .catch(err=>{
+      console.error(err);
+      const creds = window.prompt("Failed to get authorization credentials.\r\nPlease enter the api key, followed by the client ID, separated by a comma.", "api_key,client_id");
+      if (creds && creds.indexOf(",") !== -1) {
+        const credsArray = creds.split(",");
+        window.apiKey = credsArray[0];
+        window.clientId = credsArray[1];
+        callback();
+      } else {
+        window.alert("Failed to get authorization credentials. The application failed.", err);
+      }
+    });
 };
 
 //Load the Google Client, OAuth2.0 libraries

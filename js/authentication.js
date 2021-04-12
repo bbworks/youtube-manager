@@ -21,7 +21,7 @@ const fetchAuthCredentials = function(callback) {
       console.info("Fetched authorization credentials.");
       callback();
     })
-    .catch(err=>{console.err(err); window.alert("Failed to get authorization credentials. The application failed.", err)});
+    .catch(err=>{console.error(err); window.alert("Failed to get authorization credentials. The application failed.", err)});
 };
 
 //Load the Google Client, OAuth2.0 libraries
